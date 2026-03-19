@@ -10,7 +10,7 @@ vi.mock("electron", () => ({
 let tmpDir: string;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "oneclaw-config-test-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "seekclaw-config-test-"));
   vi.stubEnv("OPENCLAW_STATE_DIR", tmpDir);
 });
 
@@ -20,12 +20,12 @@ afterEach(() => {
 });
 
 test("readOneclawConfig 无文件时返回 null", async () => {
-  const { readOneclawConfig } = await import("./oneclaw-config");
+  const { readOneclawConfig } = await import("./seekclaw-config");
   expect(readOneclawConfig()).toBeNull();
 });
 
 test("writeOneclawConfig + readOneclawConfig 往返一致", async () => {
-  const { readOneclawConfig, writeOneclawConfig } = await import("./oneclaw-config");
+  const { readOneclawConfig, writeOneclawConfig } = await import("./seekclaw-config");
   const config = {
     deviceId: "test-uuid",
     setupCompletedAt: "2026-03-10T00:00:00.000Z",
@@ -35,40 +35,40 @@ test("writeOneclawConfig + readOneclawConfig 往返一致", async () => {
 });
 
 test("detectOwnership 无任何文件时返回 fresh", async () => {
-  const { detectOwnership } = await import("./oneclaw-config");
+  const { detectOwnership } = await import("./seekclaw-config");
   expect(detectOwnership()).toBe("fresh");
 });
 
-test("detectOwnership 有 oneclaw.config.json + setupCompletedAt 时返回 oneclaw", async () => {
-  const { writeOneclawConfig, detectOwnership } = await import("./oneclaw-config");
+test("detectOwnership 有 seekclaw.config.json + setupCompletedAt 时返回 seekclaw", async () => {
+  const { writeOneclawConfig, detectOwnership } = await import("./seekclaw-config");
   writeOneclawConfig({
     deviceId: "id",
     setupCompletedAt: "2026-03-10T00:00:00.000Z",
   });
-  expect(detectOwnership()).toBe("oneclaw");
+  expect(detectOwnership()).toBe("seekclaw");
 });
 
-test("detectOwnership 有 setup-baseline 文件时返回 legacy-oneclaw", async () => {
-  const { detectOwnership } = await import("./oneclaw-config");
+test("detectOwnership 有 setup-baseline 文件时返回 legacy-seekclaw", async () => {
+  const { detectOwnership } = await import("./seekclaw-config");
   fs.writeFileSync(path.join(tmpDir, "openclaw-setup-baseline.json"), "{}", "utf-8");
-  expect(detectOwnership()).toBe("legacy-oneclaw");
+  expect(detectOwnership()).toBe("legacy-seekclaw");
 });
 
-test("detectOwnership 有 .device-id 但无 OneClaw 独有文件时返回 external-openclaw", async () => {
-  const { detectOwnership } = await import("./oneclaw-config");
+test("detectOwnership 有 .device-id 但无 SeekClaw 独有文件时返回 external-openclaw", async () => {
+  const { detectOwnership } = await import("./seekclaw-config");
   fs.writeFileSync(path.join(tmpDir, ".device-id"), "some-uuid", "utf-8");
   fs.writeFileSync(path.join(tmpDir, "openclaw.json"), "{}", "utf-8");
   expect(detectOwnership()).toBe("external-openclaw");
 });
 
-test("detectOwnership 有 openclaw.json 无 .device-id 无 oneclaw.config.json 时返回 external-openclaw", async () => {
-  const { detectOwnership } = await import("./oneclaw-config");
+test("detectOwnership 有 openclaw.json 无 .device-id 无 seekclaw.config.json 时返回 external-openclaw", async () => {
+  const { detectOwnership } = await import("./seekclaw-config");
   fs.writeFileSync(path.join(tmpDir, "openclaw.json"), "{}", "utf-8");
   expect(detectOwnership()).toBe("external-openclaw");
 });
 
 test("migrateFromLegacy 从 .device-id 和 wizard.lastRunAt 迁移", async () => {
-  const { migrateFromLegacy, readOneclawConfig } = await import("./oneclaw-config");
+  const { migrateFromLegacy, readOneclawConfig } = await import("./seekclaw-config");
   fs.writeFileSync(path.join(tmpDir, ".device-id"), "legacy-uuid", "utf-8");
   fs.writeFileSync(
     path.join(tmpDir, "openclaw.json"),
@@ -91,7 +91,7 @@ test("migrateFromLegacy 从 .device-id 和 wizard.lastRunAt 迁移", async () =>
 });
 
 test("markSetupComplete 写入 setupCompletedAt", async () => {
-  const { markSetupComplete, readOneclawConfig } = await import("./oneclaw-config");
+  const { markSetupComplete, readOneclawConfig } = await import("./seekclaw-config");
   markSetupComplete();
   const config = readOneclawConfig();
   expect(config?.setupCompletedAt).toBeTruthy();

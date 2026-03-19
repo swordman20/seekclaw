@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 // 安全桥接 — 向渲染进程暴露有限 API
-contextBridge.exposeInMainWorld("oneclaw", {
+contextBridge.exposeInMainWorld("seekclaw", {
   // Gateway 控制
   restartGateway: () => ipcRenderer.send("gateway:restart"),
   startGateway: () => ipcRenderer.send("gateway:start"),

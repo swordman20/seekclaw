@@ -5850,7 +5850,7 @@ img.chat-avatar {
 }
 
 /* ============================================
-   OneClaw custom layout CSS
+   SeekClaw custom layout CSS
    Sidebar + Chat two-column layout
    ============================================ */
 
@@ -5896,19 +5896,19 @@ img.chat-avatar {
   border-color: var(--accent-hover) !important;
 }
 
-.oneclaw-shell {
+.seekclaw-shell {
   display: flex;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
 }
 
-.oneclaw-shell--sidebar-collapsed .oneclaw-main,
-.oneclaw-shell--focus .oneclaw-main {
+.seekclaw-shell--sidebar-collapsed .seekclaw-main,
+.seekclaw-shell--focus .seekclaw-main {
   width: 100vw;
 }
 
-.oneclaw-main {
+.seekclaw-main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -5919,21 +5919,21 @@ img.chat-avatar {
   background: var(--bg);
 }
 
-.oneclaw-content {
+.seekclaw-content {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.oneclaw-content>.card.chat {
+.seekclaw-content>.card.chat {
   flex: 1;
   border-radius: 0;
   border: none;
   margin: 0;
 }
 
-.oneclaw-sidebar {
+.seekclaw-sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
   display: flex;
@@ -5945,7 +5945,7 @@ img.chat-avatar {
   -webkit-app-region: drag;
 }
 
-.oneclaw-sidebar__brand {
+.seekclaw-sidebar__brand {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5955,14 +5955,14 @@ img.chat-avatar {
   -webkit-app-region: drag;
 }
 
-.oneclaw-sidebar__brand-main {
+.seekclaw-sidebar__brand-main {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.oneclaw-sidebar__logo {
+.seekclaw-sidebar__logo {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5970,13 +5970,13 @@ img.chat-avatar {
   height: 28px;
 }
 
-.oneclaw-sidebar__logo img {
+.seekclaw-sidebar__logo img {
   width: 28px;
   height: 28px;
   object-fit: contain;
 }
 
-.oneclaw-sidebar__title {
+.seekclaw-sidebar__title {
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
@@ -5984,7 +5984,7 @@ img.chat-avatar {
   text-overflow: ellipsis;
 }
 
-.oneclaw-sidebar__collapse {
+.seekclaw-sidebar__collapse {
   width: 32px;
   height: 32px;
   border: none;
@@ -5999,12 +5999,12 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__collapse:hover {
+.seekclaw-sidebar__collapse:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
-.oneclaw-sidebar__new-chat-btn {
+.seekclaw-sidebar__new-chat-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6022,12 +6022,12 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__new-chat-btn:hover {
+.seekclaw-sidebar__new-chat-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.oneclaw-sidebar__new-chat-btn svg {
+.seekclaw-sidebar__new-chat-btn svg {
   width: 16px;
   height: 16px;
   stroke: currentColor;
@@ -6038,7 +6038,7 @@ img.chat-avatar {
   flex-shrink: 0;
 }
 
-.oneclaw-sidebar__collapse svg {
+.seekclaw-sidebar__collapse svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
@@ -6048,7 +6048,7 @@ img.chat-avatar {
   stroke-linejoin: round;
 }
 
-.oneclaw-sidebar__nav {
+.seekclaw-sidebar__nav {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -6058,21 +6058,21 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__section-title {
+.seekclaw-sidebar__section-title {
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.05em;
 }
 
 /* 会话列表标题行：标题 + 新建按钮 */
-.oneclaw-sidebar__session-header {
+.seekclaw-sidebar__session-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px 2px;
 }
 
-.oneclaw-sidebar__session-add {
+.seekclaw-sidebar__session-add {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6087,7 +6087,7 @@ img.chat-avatar {
   transition: background 0.1s, color 0.1s;
 }
 
-.oneclaw-sidebar__session-add svg {
+.seekclaw-sidebar__session-add svg {
   width: 14px;
   height: 14px;
   stroke: currentColor;
@@ -6097,13 +6097,13 @@ img.chat-avatar {
   stroke-linejoin: round;
 }
 
-.oneclaw-sidebar__session-add:hover {
+.seekclaw-sidebar__session-add:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
 /* 会话列表容器 */
-.oneclaw-sidebar__session-list {
+.seekclaw-sidebar__session-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -6115,7 +6115,7 @@ img.chat-avatar {
 
 /* 单个会话项 */
 /* 会话项：统一圆角 + 宽松内边距 */
-.oneclaw-sidebar__session-item {
+.seekclaw-sidebar__session-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -6129,19 +6129,19 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__session-item:hover {
+.seekclaw-sidebar__session-item:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
 /* 选中态：微妙的背景色 */
-.oneclaw-sidebar__session-item.active {
+.seekclaw-sidebar__session-item.active {
   color: var(--text-strong);
   background: var(--bg-hover);
 }
 
 /* 会话名称：溢出省略 */
-.oneclaw-sidebar__session-name {
+.seekclaw-sidebar__session-name {
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -6151,7 +6151,7 @@ img.chat-avatar {
 }
 
 /* 行内编辑输入框 */
-.oneclaw-sidebar__session-edit {
+.seekclaw-sidebar__session-edit {
   flex: 1;
   min-width: 0;
   border: 1px solid var(--accent);
@@ -6165,7 +6165,7 @@ img.chat-avatar {
 }
 
 /* 操作按钮（编辑、删除）：默认隐藏，hover 时显示 */
-.oneclaw-sidebar__session-action {
+.seekclaw-sidebar__session-action {
   display: none;
   align-items: center;
   justify-content: center;
@@ -6180,7 +6180,7 @@ img.chat-avatar {
   flex-shrink: 0;
 }
 
-.oneclaw-sidebar__session-action svg {
+.seekclaw-sidebar__session-action svg {
   width: 12px;
   height: 12px;
   stroke: currentColor;
@@ -6190,17 +6190,17 @@ img.chat-avatar {
   stroke-linejoin: round;
 }
 
-.oneclaw-sidebar__session-item:hover .oneclaw-sidebar__session-action {
+.seekclaw-sidebar__session-item:hover .seekclaw-sidebar__session-action {
   display: flex;
 }
 
-.oneclaw-sidebar__session-action:hover {
+.seekclaw-sidebar__session-action:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
 /* 侧栏底部导航项：统一圆角 + 宽松内边距 */
-.oneclaw-sidebar__item {
+.seekclaw-sidebar__item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -6217,16 +6217,16 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__item:hover {
+.seekclaw-sidebar__item:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
-.oneclaw-sidebar__item:active {
+.seekclaw-sidebar__item:active {
   background: var(--bg-active, var(--bg-hover));
 }
 
-.oneclaw-sidebar__icon {
+.seekclaw-sidebar__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6234,7 +6234,7 @@ img.chat-avatar {
   height: 18px;
 }
 
-.oneclaw-sidebar__icon svg {
+.seekclaw-sidebar__icon svg {
   width: 16px;
   height: 16px;
   stroke: currentColor;
@@ -6244,42 +6244,42 @@ img.chat-avatar {
   stroke-linejoin: round;
 }
 
-.oneclaw-sidebar__label {
+.seekclaw-sidebar__label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.oneclaw-sidebar__item--settings {
+.seekclaw-sidebar__item--settings {
   width: 100%;
 }
 
-.oneclaw-sidebar__item--update {
+.seekclaw-sidebar__item--update {
   width: 100%;
   position: relative;
   color: var(--accent);
   background: var(--accent-subtle);
 }
 
-.oneclaw-sidebar__item--update:hover:not(:disabled) {
+.seekclaw-sidebar__item--update:hover:not(:disabled) {
   color: var(--accent);
   background: rgba(192, 57, 43, 0.2);
 }
 
-.oneclaw-sidebar__item--update .oneclaw-sidebar__label {
+.seekclaw-sidebar__item--update .seekclaw-sidebar__label {
   font-weight: 600;
 }
 
-.oneclaw-sidebar__item--update:disabled {
+.seekclaw-sidebar__item--update:disabled {
   cursor: default;
   opacity: 0.78;
 }
 
-.oneclaw-sidebar__item--update.is-loading .oneclaw-sidebar__icon svg {
+.seekclaw-sidebar__item--update.is-loading .seekclaw-sidebar__icon svg {
   animation: spin 1s linear infinite;
 }
 
-.oneclaw-sidebar__update-dot {
+.seekclaw-sidebar__update-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -6290,16 +6290,16 @@ img.chat-avatar {
 }
 
 /* 选中态：灰色背景，无彩色 */
-.oneclaw-sidebar__item.active {
+.seekclaw-sidebar__item.active {
   color: var(--text-strong);
   background: var(--bg-hover);
 }
 
-.oneclaw-sidebar__item.active .oneclaw-sidebar__icon {
+.seekclaw-sidebar__item.active .seekclaw-sidebar__icon {
   color: var(--text-strong);
 }
 
-.oneclaw-sidebar__footer {
+.seekclaw-sidebar__footer {
   padding: 8px 12px 10px;
   border-top: 1px solid var(--border);
   -webkit-app-region: no-drag;
@@ -6308,7 +6308,7 @@ img.chat-avatar {
   gap: 6px;
 }
 
-.oneclaw-sidebar__status-row {
+.seekclaw-sidebar__status-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6316,7 +6316,7 @@ img.chat-avatar {
   padding: 0 10px;
 }
 
-.oneclaw-sidebar__status {
+.seekclaw-sidebar__status {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -6324,11 +6324,11 @@ img.chat-avatar {
   color: var(--muted);
 }
 
-.oneclaw-sidebar__status-text {
+.seekclaw-sidebar__status-text {
   white-space: nowrap;
 }
 
-.oneclaw-sidebar__refresh {
+.seekclaw-sidebar__refresh {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -6345,27 +6345,27 @@ img.chat-avatar {
   transition: background 0.1s, color 0.1s;
 }
 
-.oneclaw-sidebar__refresh:hover {
+.seekclaw-sidebar__refresh:hover {
   background: var(--bg-hover);
   color: var(--text);
 }
 
-.oneclaw-sidebar__refresh:disabled {
+.seekclaw-sidebar__refresh:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* 断开连接时刷新按钮变红 */
-.oneclaw-sidebar__refresh.disconnected {
+.seekclaw-sidebar__refresh.disconnected {
   color: var(--accent, #c0392b);
 }
 
-.oneclaw-sidebar__refresh.disconnected:hover {
+.seekclaw-sidebar__refresh.disconnected:hover {
   color: var(--accent-hover, #a93226);
   background: var(--bg-hover);
 }
 
-.oneclaw-sidebar__refresh svg {
+.seekclaw-sidebar__refresh svg {
   width: 14px;
   height: 14px;
   stroke: currentColor;
@@ -6388,7 +6388,7 @@ img.chat-avatar {
   background: #22c55e;
 }
 
-.oneclaw-titlebar {
+.seekclaw-titlebar {
   height: 44px;
   position: absolute;
   top: 0;
@@ -6400,7 +6400,7 @@ img.chat-avatar {
   align-items: center;
 }
 
-.oneclaw-floating-actions {
+.seekclaw-floating-actions {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -6411,11 +6411,11 @@ img.chat-avatar {
 }
 
 /* macOS 红绿灯右侧对齐 */
-.is-mac .oneclaw-floating-actions {
+.is-mac .seekclaw-floating-actions {
   margin-left: 90px;
 }
 
-.oneclaw-floating-btn {
+.seekclaw-floating-btn {
   width: 32px;
   height: 32px;
   border: none;
@@ -6429,12 +6429,12 @@ img.chat-avatar {
   transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
 }
 
-.oneclaw-floating-btn:hover {
+.seekclaw-floating-btn:hover {
   color: var(--text);
   background: var(--bg-hover);
 }
 
-.oneclaw-floating-btn svg {
+.seekclaw-floating-btn svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
@@ -6460,13 +6460,13 @@ img.chat-avatar {
   display: none !important;
 }
 
-.oneclaw-content .chat {
+.seekclaw-content .chat {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.oneclaw-settings-host {
+.seekclaw-settings-host {
   width: 100%;
   flex: 1;
   min-height: 0;
@@ -6474,7 +6474,7 @@ img.chat-avatar {
   flex-direction: column;
 }
 
-.oneclaw-settings-iframe {
+.seekclaw-settings-iframe {
   width: 100%;
   flex: 1;
   min-height: 0;
@@ -6492,18 +6492,18 @@ img.chat-avatar {
     --sidebar-width: 178px;
   }
 
-  .oneclaw-sidebar__title {
+  .seekclaw-sidebar__title {
     font-size: 14px;
   }
 
-  .oneclaw-sidebar__item {
+  .seekclaw-sidebar__item {
     padding: 7px 10px;
     font-size: 12px;
   }
 }
 
 /* 聊天渠道待审批提示卡：把隐式设置步骤前置到聊天主流程。 */
-.oneclaw-pairing-notice {
+.seekclaw-pairing-notice {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -6520,20 +6520,20 @@ img.chat-avatar {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
-.oneclaw-pairing-notice__main {
+.seekclaw-pairing-notice__main {
   min-width: 0;
   display: grid;
   gap: 4px;
 }
 
-.oneclaw-pairing-notice__title {
+.seekclaw-pairing-notice__title {
   font-size: 15px;
   line-height: 1.4;
   color: #111827;
   font-weight: 600;
 }
 
-.oneclaw-pairing-notice__desc {
+.seekclaw-pairing-notice__desc {
   font-size: 13px;
   line-height: 1.5;
   color: #4b5563;
@@ -6543,7 +6543,7 @@ img.chat-avatar {
   overflow: hidden;
 }
 
-.oneclaw-pairing-notice__actions {
+.seekclaw-pairing-notice__actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -6551,7 +6551,7 @@ img.chat-avatar {
   margin-top: 4px;
 }
 
-.oneclaw-pairing-notice__icon-btn {
+.seekclaw-pairing-notice__icon-btn {
   width: 32px;
   height: 32px;
   border: 1px solid #e5e7eb;
@@ -6566,7 +6566,7 @@ img.chat-avatar {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.oneclaw-pairing-notice__icon-btn svg {
+.seekclaw-pairing-notice__icon-btn svg {
   width: 16px;
   height: 16px;
   stroke: currentColor;
@@ -6576,37 +6576,37 @@ img.chat-avatar {
   stroke-linejoin: round;
 }
 
-.oneclaw-pairing-notice__icon-btn:hover:not(:disabled) {
+.seekclaw-pairing-notice__icon-btn:hover:not(:disabled) {
   background: #f9fafb;
   border-color: #d1d5db;
   color: #374151;
 }
 
-.oneclaw-pairing-notice__icon-btn:active:not(:disabled) {
+.seekclaw-pairing-notice__icon-btn:active:not(:disabled) {
   background: #f3f4f6;
   transform: translateY(1px);
 }
 
-.oneclaw-pairing-notice__icon-btn:disabled {
+.seekclaw-pairing-notice__icon-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: #f9fafb;
 }
 
-.oneclaw-pairing-notice__icon-btn.is-approve:hover:not(:disabled) {
+.seekclaw-pairing-notice__icon-btn.is-approve:hover:not(:disabled) {
   color: #16a34a;
   border-color: #86efac;
   background: #f0fdf4;
 }
 
-.oneclaw-pairing-notice__icon-btn.is-reject:hover:not(:disabled) {
+.seekclaw-pairing-notice__icon-btn.is-reject:hover:not(:disabled) {
   color: #dc2626;
   border-color: #fca5a5;
   background: #fef2f2;
 }
 
 @media (max-width: 720px) {
-  .oneclaw-pairing-notice {
+  .seekclaw-pairing-notice {
     top: 12px;
     right: 12px;
     width: calc(100vw - 24px);
@@ -7038,10 +7038,10 @@ img.chat-avatar {
   flex-shrink: 0;
 }
 
-/* --- OneClaw Visual Polish Overrides --- */
+/* --- SeekClaw Visual Polish Overrides --- */
 
 /* 1. Immersive Titlebar padding */
-.oneclaw-sidebar__brand {
+.seekclaw-sidebar__brand {
   height: 44px !important;
   /* Windows/Linux 默认：按钮靠左 */
   padding: 3px 12px 0 12px !important;
@@ -7052,11 +7052,11 @@ img.chat-avatar {
 }
 
 /* macOS 红绿灯约 70px，按钮紧跟其后 */
-.is-mac .oneclaw-sidebar__brand {
+.is-mac .seekclaw-sidebar__brand {
   padding-left: 90px !important;
 }
 
-.oneclaw-sidebar__collapse {
+.seekclaw-sidebar__collapse {
   -webkit-app-region: no-drag;
 }
 
@@ -7069,18 +7069,18 @@ img.chat-avatar {
   -webkit-app-region: no-drag;
 }
 
-.oneclaw-sidebar__item,
-.oneclaw-sidebar__session-item,
-.oneclaw-sidebar__session-add {
+.seekclaw-sidebar__item,
+.seekclaw-sidebar__session-item,
+.seekclaw-sidebar__session-add {
   -webkit-app-region: no-drag;
 }
 
 /* 2. Fullpage Settings */
-.oneclaw-shell--fullpage .oneclaw-sidebar {
+.seekclaw-shell--fullpage .seekclaw-sidebar {
   display: none !important;
 }
 
-.oneclaw-shell--fullpage .oneclaw-main {
+.seekclaw-shell--fullpage .seekclaw-main {
   width: 100vw !important;
 }
 

@@ -443,7 +443,7 @@ function ensureClawhubWrapper(nodeBin: string): void {
   if (IS_WIN) {
     const wrapper = [
       "@echo off",
-      "REM OneClaw clawhub CLI - auto-generated, do not edit",
+      "REM SeekClaw clawhub CLI - auto-generated, do not edit",
       "setlocal",
       `set "APP_NODE=${nodeBin.replace(/"/g, '""')}"`,
       `set "APP_ENTRY=${clawhubEntry.replace(/"/g, '""')}"`,
@@ -460,7 +460,7 @@ function ensureClawhubWrapper(nodeBin: string): void {
     const safeWorkdir = workdir.replace(/(["\\$`])/g, "\\$1");
     const wrapper = [
       "#!/usr/bin/env bash",
-      "# OneClaw clawhub CLI - auto-generated, do not edit",
+      "# SeekClaw clawhub CLI - auto-generated, do not edit",
       `APP_NODE="${safeNode}"`,
       `APP_ENTRY="${safeEntry}"`,
       `APP_WORKDIR="${safeWorkdir}"`,

@@ -2,7 +2,7 @@ import { app } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { isSetupCompleteFromConfig } from "./setup-completion";
-import { readOneclawConfig } from "./oneclaw-config";
+import { readSeekclawConfig } from "./seekclaw-config";
 
 // ── 网络端口 ──
 
@@ -62,7 +62,7 @@ export function resolveResourcesPath(): string {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, "resources");
   }
-  const target = process.env.ONECLAW_TARGET ?? `${process.platform}-${process.arch}`;
+  const target = process.env.SEEKCLAW_TARGET ?? `${process.platform}-${process.arch}`;
   return path.join(app.getAppPath(), "resources", "targets", target);
 }
 
@@ -243,13 +243,13 @@ export function resolveChatUiPath(): string {
 
 // ── Setup 完成判断 ──
 
-/** 检查 Setup 是否已完成（优先读 oneclaw.config.json，兼容旧版） */
+/** 检查 Setup 是否已完成（优先读 seekclaw.config.json，兼容旧版） */
 export function isSetupComplete(): boolean {
-  // 新逻辑：oneclaw.config.json 的 setupCompletedAt
-  const oneclawConfig = readOneclawConfig();
-  if (oneclawConfig?.setupCompletedAt) return true;
+  // 新逻辑：seekclaw.config.json 的 setupCompletedAt
+  const seekclawConfig = readSeekclawConfig();
+  if (seekclawConfig?.setupCompletedAt) return true;
 
-  // 兼容：老 OneClaw 用户可能还没迁移
+  // 兼容：老 SeekClaw 用户可能还没迁移
   const configPath = resolveUserConfigPath();
   if (!fs.existsSync(configPath)) return false;
   try {

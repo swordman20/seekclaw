@@ -1,5 +1,5 @@
 /**
- * OneClaw custom app-render.ts
+ * SeekClaw custom app-render.ts
  * Replaces the upstream 13-tab dashboard with a minimal sidebar + chat layout.
  * Chat view and all chat functionality are preserved from upstream.
  */
@@ -32,7 +32,7 @@ import {
 
 declare global {
   interface Window {
-    oneclaw?: {
+    seekclaw?: {
       openSettings?: () => void;
       openWebUI?: () => void;
       openExternal?: (url: string) => unknown;
@@ -160,7 +160,7 @@ function handleSessionChange(state: AppViewState, nextSessionKey: string) {
   if (!nextSessionKey.trim()) {
     return;
   }
-  setOneClawView(state, "chat");
+  setSeekClawView(state, "chat");
   applySessionKey(state, nextSessionKey, true);
 }
 
@@ -212,20 +212,20 @@ async function deleteSessionFromSidebar(state: AppViewState, key: string) {
   await loadSessions(s);
 }
 
-function setOneClawView(state: AppViewState, next: "chat" | "settings" | "skills") {
-  if ((state.settings.oneclawView ?? "chat") === next) {
+function setSeekClawView(state: AppViewState, next: "chat" | "settings" | "skills") {
+  if ((state.settings.seekclawView ?? "chat") === next) {
     return;
   }
   state.applySettings({
     ...state.settings,
-    oneclawView: next,
+    seekclawView: next,
   });
 }
 
 // 打开内嵌设置页时可携带目标 tab 提示，减少用户二次定位成本。
 function openSettingsView(state: AppViewState, tabHint: "channels" | null = null) {
   state.settingsTabHint = tabHint;
-  setOneClawView(state, "settings");
+  setSeekClawView(state, "settings");
 }
 
 // ── 技能页子标签 ──
@@ -269,12 +269,12 @@ let skillStoreDataLoaded = false;
 
 // 加载技能列表（初次或切换排序时调用）
 async function loadSkillStoreData(state: AppViewState, append = false) {
-  if (!window.oneclaw?.skillStoreList) return;
+  if (!window.seekclaw?.skillStoreList) return;
   skillStoreState.loading = true;
   skillStoreState.error = null;
   state.requestUpdate();
   try {
-    const result = await window.oneclaw.skillStoreList({
+    const result = await window.seekclaw.skillStoreList({
       sort: skillStoreState.sort,
       limit: 20,
       cursor: append ? skillStoreState.nextCursor : undefined,
@@ -301,7 +301,7 @@ async function loadSkillStoreData(state: AppViewState, append = false) {
 
 // 搜索技能
 async function searchSkillStore(state: AppViewState) {
-  if (!window.oneclaw?.skillStoreSearch) return;
+  if (!window.seekclaw?.skillStoreSearch) return;
   const q = skillStoreState.searchQuery.trim();
   if (!q) {
     skillStoreDataLoaded = false;
@@ -312,7 +312,7 @@ async function searchSkillStore(state: AppViewState) {
   skillStoreState.error = null;
   state.requestUpdate();
   try {
-    const result = await window.oneclaw.skillStoreSearch({ q, limit: 20 });
+    const result = await window.seekclaw.skillStoreSearch({ q, limit: 20 });
     if (result?.success && result.data) {
       skillStoreState.skills = Array.isArray(result.data.skills) ? result.data.skills : [];
       skillStoreState.nextCursor = null;
@@ -329,9 +329,9 @@ async function searchSkillStore(state: AppViewState) {
 
 // 刷新已安装列表
 async function refreshInstalledSlugs() {
-  if (!window.oneclaw?.skillStoreListInstalled) return;
+  if (!window.seekclaw?.skillStoreListInstalled) return;
   try {
-    const result = await window.oneclaw.skillStoreListInstalled();
+    const result = await window.seekclaw.skillStoreListInstalled();
     if (result?.success && Array.isArray(result.data)) {
       skillStoreState.installedSlugs = new Set(result.data);
     }
@@ -340,11 +340,11 @@ async function refreshInstalledSlugs() {
 
 // 安装技能
 async function installSkillFromStore(state: AppViewState, slug: string) {
-  if (!window.oneclaw?.skillStoreInstall) return;
+  if (!window.seekclaw?.skillStoreInstall) return;
   skillStoreState.installingSlugs.add(slug);
   state.requestUpdate();
   try {
-    const result = await window.oneclaw.skillStoreInstall({ slug });
+    const result = await window.seekclaw.skillStoreInstall({ slug });
     if (result?.success) {
       skillStoreState.installedSlugs.add(slug);
     } else {
@@ -359,11 +359,11 @@ async function installSkillFromStore(state: AppViewState, slug: string) {
 
 // 卸载技能
 async function uninstallSkillFromStore(state: AppViewState, slug: string) {
-  if (!window.oneclaw?.skillStoreUninstall) return;
+  if (!window.seekclaw?.skillStoreUninstall) return;
   skillStoreState.installingSlugs.add(slug);
   state.requestUpdate();
   try {
-    const result = await window.oneclaw.skillStoreUninstall({ slug });
+    const result = await window.seekclaw.skillStoreUninstall({ slug });
     if (result?.success) {
       skillStoreState.installedSlugs.delete(slug);
     } else {
@@ -378,11 +378,11 @@ async function uninstallSkillFromStore(state: AppViewState, slug: string) {
 
 // 从已安装页面卸载技能（调用 clawhub uninstall 后刷新技能列表）
 async function uninstallLocalSkill(state: AppViewState, slug: string) {
-  if (!window.oneclaw?.skillStoreUninstall) return;
+  if (!window.seekclaw?.skillStoreUninstall) return;
   state.skillsBusyKey = slug;
   state.requestUpdate();
   try {
-    const result = await window.oneclaw.skillStoreUninstall({ slug });
+    const result = await window.seekclaw.skillStoreUninstall({ slug });
     if (result?.success) {
       // 刷新已安装列表和商店已安装标记
       void loadSkills(state as unknown as SkillsState);
@@ -566,7 +566,7 @@ function renderInstalledSkillsView(state: AppViewState) {
 // 打开技能管理视图（默认显示已安装技能）
 function openSkillsView(state: AppViewState, subTab: "installed" | "store" = "installed") {
   skillsSubTab = subTab;
-  setOneClawView(state, "skills");
+  setSeekClawView(state, "skills");
   if (subTab === "installed") {
     void loadSkills(state as unknown as SkillsState);
   } else if (!skillStoreDataLoaded) {
@@ -579,7 +579,7 @@ function createNewSession(state: AppViewState) {
   const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   const newKey = `agent:main:${id}`;
   const label = t("chat.newSession");
-  setOneClawView(state, "chat");
+  setSeekClawView(state, "chat");
   // 先把新会话插入本地列表，UI 立即可见正确的名称
   const sessions = state.sessionsResult?.sessions ?? [];
   state.sessionsResult = {
@@ -598,7 +598,7 @@ function confirmAndCreateNewSession(state: AppViewState) {
   if (!ok) {
     return;
   }
-  setOneClawView(state, "chat");
+  setSeekClawView(state, "chat");
   return state.handleSendChat("/new", { restoreDraft: true });
 }
 
@@ -633,18 +633,18 @@ async function handleRefreshChat(state: AppViewState) {
 }
 
 async function handleOpenWebUI(state: AppViewState) {
-  if (window.oneclaw?.openWebUI) {
-    window.oneclaw.openWebUI();
-  } else if (window.oneclaw?.openExternal) {
+  if (window.seekclaw?.openWebUI) {
+    window.seekclaw.openWebUI();
+  } else if (window.seekclaw?.openExternal) {
     let port = 18789;
     try {
-      if (window.oneclaw.getGatewayPort) {
-        port = await window.oneclaw.getGatewayPort();
+      if (window.seekclaw.getGatewayPort) {
+        port = await window.seekclaw.getGatewayPort();
       }
     } catch { /* use default */ }
     const token = state.settings.token.trim();
     const query = token ? `?token=${encodeURIComponent(token)}` : "";
-    window.oneclaw.openExternal(`http://127.0.0.1:${port}/${query}`);
+    window.seekclaw.openExternal(`http://127.0.0.1:${port}/${query}`);
   }
 }
 
@@ -655,14 +655,14 @@ async function handleApplyUpdate(state: AppViewState) {
     return;
   }
   try {
-    await window.oneclaw?.downloadAndInstallUpdate?.();
+    await window.seekclaw?.downloadAndInstallUpdate?.();
   } catch {
     // ignore bridge failure; main process会记录日志并回退状态
   }
 }
 
 function ensureSettingsEmbedBridge(state: AppViewState) {
-  const bridgeKey = "__oneclawSettingsEmbedBridge";
+  const bridgeKey = "__seekclawSettingsEmbedBridge";
   const w = window as unknown as {
     [bridgeKey]?: { state: AppViewState; bound: boolean };
   };
@@ -687,7 +687,7 @@ function ensureSettingsEmbedBridge(state: AppViewState) {
           payload?: { theme?: "system" | "light" | "dark"; showThinking?: boolean };
         }
       | undefined;
-    if (!data || data.source !== "oneclaw-settings-embed") {
+    if (!data || data.source !== "seekclaw-settings-embed") {
       return;
     }
 
@@ -695,7 +695,7 @@ function ensureSettingsEmbedBridge(state: AppViewState) {
       if (event.source && "postMessage" in event.source) {
         (event.source as Window).postMessage(
           {
-            source: "oneclaw-chat-ui",
+            source: "seekclaw-chat-ui",
             type: "appearance-init",
             payload: {
               theme: bridge.state.theme,
@@ -709,7 +709,7 @@ function ensureSettingsEmbedBridge(state: AppViewState) {
     }
 
     if (data.type === "navigate-back") {
-      setOneClawView(bridge.state, "chat");
+      setSeekClawView(bridge.state, "chat");
       return;
     }
 
@@ -748,13 +748,13 @@ function resolveEmbeddedSettingsUrl(state: AppViewState) {
   return settingsUrl.toString();
 }
 
-function renderOneClawSettingsPage(state: AppViewState) {
+function renderSeekClawSettingsPage(state: AppViewState) {
   ensureSettingsEmbedBridge(state);
   const settingsUrl = resolveEmbeddedSettingsUrl(state);
   return html`
-    <section class="oneclaw-settings-host">
+    <section class="seekclaw-settings-host">
       <iframe
-        class="oneclaw-settings-iframe"
+        class="seekclaw-settings-iframe"
         src=${settingsUrl}
         title=${t("settings.title")}
       ></iframe>
@@ -771,16 +771,16 @@ function renderPairingNotice(state: AppViewState) {
   const peerLabel = first?.name?.trim() || first?.id?.trim() || t("pairing.pendingUnknown");
   const channelLabel = state.getPendingPairingChannelLabel();
   return html`
-    <section class="oneclaw-pairing-notice">
-      <div class="oneclaw-pairing-notice__main">
-        <div class="oneclaw-pairing-notice__title">${t("pairing.pendingTitle").replace("{channel}", channelLabel)}</div>
-        <div class="oneclaw-pairing-notice__desc">
+    <section class="seekclaw-pairing-notice">
+      <div class="seekclaw-pairing-notice__main">
+        <div class="seekclaw-pairing-notice__title">${t("pairing.pendingTitle").replace("{channel}", channelLabel)}</div>
+        <div class="seekclaw-pairing-notice__desc">
           ${t("pairing.pendingDesc").replace("{name}", peerLabel)}
         </div>
       </div>
-      <div class="oneclaw-pairing-notice__actions">
+      <div class="seekclaw-pairing-notice__actions">
         <button
-          class="oneclaw-pairing-notice__icon-btn is-approve"
+          class="seekclaw-pairing-notice__icon-btn is-approve"
           type="button"
           ?disabled=${state.pairingApproving || state.pairingRejecting}
           data-tooltip=${t("pairing.approveNow")}
@@ -790,7 +790,7 @@ function renderPairingNotice(state: AppViewState) {
           ${icons.check}
         </button>
         <button
-          class="oneclaw-pairing-notice__icon-btn is-reject"
+          class="seekclaw-pairing-notice__icon-btn is-reject"
           type="button"
           ?disabled=${state.pairingApproving || state.pairingRejecting}
           data-tooltip=${t("pairing.rejectNow")}
@@ -813,14 +813,14 @@ export function renderApp(state: AppViewState) {
   const sidebarCollapsed = !state.onboarding && state.settings.navCollapsed;
   const currentSessionKey = state.sessionKey;
   const sessionOptions = resolveSessionOptions(state);
-  const oneclawView = state.settings.oneclawView ?? "chat";
-  const settingsActive = oneclawView === "settings";
-  const skillsActive = oneclawView === "skills";
+  const seekclawView = state.settings.seekclawView ?? "chat";
+  const settingsActive = seekclawView === "settings";
+  const skillsActive = seekclawView === "skills";
   const updateBannerState = state.updateBannerState;
 
   return html`
     <div
-      class="oneclaw-shell ${navigator.platform?.includes("Mac") ? "is-mac" : ""} ${chatFocus ? "oneclaw-shell--focus" : ""} ${sidebarCollapsed ? "oneclaw-shell--sidebar-collapsed" : ""} ${settingsActive ? "oneclaw-shell--fullpage" : ""}"
+      class="seekclaw-shell ${navigator.platform?.includes("Mac") ? "is-mac" : ""} ${chatFocus ? "seekclaw-shell--focus" : ""} ${sidebarCollapsed ? "seekclaw-shell--sidebar-collapsed" : ""} ${settingsActive ? "seekclaw-shell--fullpage" : ""}"
     >
       ${chatFocus || sidebarCollapsed
         ? nothing
@@ -857,27 +857,27 @@ export function renderApp(state: AppViewState) {
             onOpenSkillStore: () => openSkillsView(state),
             onOpenWebUI: () => void handleOpenWebUI(state),
             onOpenDocs: () => {
-              if (window.oneclaw?.openExternal) {
-                window.oneclaw.openExternal("https://oneclaw.cn/docs");
+              if (window.seekclaw?.openExternal) {
+                window.seekclaw.openExternal("https://seekclaw.cn/docs");
               } else {
-                window.open("https://oneclaw.cn/docs", "_blank");
+                window.open("https://seekclaw.cn/docs", "_blank");
               }
             },
             onApplyUpdate: () => void handleApplyUpdate(state),
           })}
 
-      <div class="oneclaw-main">
+      <div class="seekclaw-main">
         ${
           settingsActive
             ? html`<div style="position: absolute; top: 0; left: 0; right: 0; height: 44px; -webkit-app-region: drag;"></div>`
             : html`
-                <div class="oneclaw-titlebar">
+                <div class="seekclaw-titlebar">
                   ${
                     sidebarCollapsed && !chatFocus
                       ? html`
-                          <div class="oneclaw-floating-actions">
+                          <div class="seekclaw-floating-actions">
                             <button
-                              class="oneclaw-floating-btn"
+                              class="seekclaw-floating-btn"
                               type="button"
                               @click=${() => {
                                 state.applySettings({
@@ -892,7 +892,7 @@ export function renderApp(state: AppViewState) {
                               ${icons.panelLeft}
                             </button>
                             <button
-                              class="oneclaw-floating-btn"
+                              class="seekclaw-floating-btn"
                               type="button"
                               @click=${() => handleSessionChange(state, generateSessionKey())}
                               data-tooltip=${t("sidebar.newChat")}
@@ -909,10 +909,10 @@ export function renderApp(state: AppViewState) {
               `
         }
 
-        <main class="oneclaw-content">
+        <main class="seekclaw-content">
           ${renderPairingNotice(state)}
           ${settingsActive
-            ? renderOneClawSettingsPage(state)
+            ? renderSeekClawSettingsPage(state)
             : skillsActive
               ? html`
                   <div class="skills-scroll" @scroll=${(e: Event) => {

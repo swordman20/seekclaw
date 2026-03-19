@@ -251,7 +251,7 @@ export function registerSetupIpc(deps: SetupIpcDeps): void {
         config.channels.imessage ??= {};
         config.channels.imessage.enabled = false;
 
-        // 禁止 gateway 自行检查 npm 更新（OneClaw 整包打包，用户无法独立更新 gateway）
+        // 禁止 gateway 自行检查 npm 更新（SeekClaw 整包打包，用户无法独立更新 gateway）
         config.update ??= {};
         config.update.checkOnStart = false;
 

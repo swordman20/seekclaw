@@ -10,7 +10,7 @@ import {
   resolveUserConfigPath,
   resolveUserStateDir,
 } from "./constants";
-import { resolveOneclawConfigPath } from "./oneclaw-config";
+import { resolveSeekclawConfigPath } from "./seekclaw-config";
 import {
   getConfigRecoveryData,
   restoreLastKnownGoodConfigSnapshot,
@@ -592,7 +592,7 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
     if (!app.isPackaged) {
       return `开发模式未检测到 QQ Bot 插件，请先运行 npm run package:resources（当前目标：${process.platform}-${process.arch}）。`;
     }
-    return "QQ Bot 组件缺失，请重新安装 OneClaw。";
+    return "QQ Bot 组件缺失，请重新安装 SeekClaw。";
   }
 
   function resolveDingtalkMissingMessage(): string {
@@ -600,7 +600,7 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
     if (!app.isPackaged) {
       return `开发模式未检测到钉钉连接器插件，请先运行 npm run package:resources（当前目标：${process.platform}-${process.arch}）。`;
     }
-    return "钉钉连接器组件缺失，请重新安装 OneClaw。";
+    return "钉钉连接器组件缺失，请重新安装 SeekClaw。";
   }
 
   function resolveWecomMissingMessage(): string {
@@ -608,7 +608,7 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
     if (!app.isPackaged) {
       return `开发模式未检测到企业微信插件，请先运行 npm run package:resources（当前目标：${process.platform}-${process.arch}）。`;
     }
-    return "企业微信插件组件缺失，请重新安装 OneClaw。";
+    return "企业微信插件组件缺失，请重新安装 SeekClaw。";
   }
 
   ipcMain.handle("settings:get-qqbot-config", async () => {
@@ -1056,7 +1056,7 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
           return { success: false, message: "Kimi Bot Token 不能为空。" };
         }
         if (!isKimiPluginBundled()) {
-          return { success: false, message: "Kimi Channel 组件缺失，请重新安装 OneClaw。" };
+          return { success: false, message: "Kimi Channel 组件缺失，请重新安装 SeekClaw。" };
         }
 
         const gatewayToken = ensureGatewayAuthTokenInConfig(config);
@@ -1087,7 +1087,7 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
     return runTrackedSettingsAction("save_kimi_search", { enabled }, async () => {
       try {
         if (enabled && !isKimiSearchPluginBundled()) {
-          return { success: false, message: "Kimi Search 组件缺失，请重新安装 OneClaw。" };
+          return { success: false, message: "Kimi Search 组件缺失，请重新安装 SeekClaw。" };
         }
         // 专属 key 存到 sidecar 文件，不写入 openclaw.json
         if (typeof apiKey === "string") {
@@ -1299,9 +1299,9 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
   });
 
   // ── 恢复配置：删除 openclaw.json 并重启应用，保留历史目录 ──
-  // 返回 OneClaw 和 OpenClaw 版本信息
+  // 返回 SeekClaw 和 OpenClaw 版本信息
   ipcMain.handle("settings:get-about-info", async () => {
-    const oneClawVersion = app.getVersion();
+    const seekClawVersion = app.getVersion();
     let openClawVersion = "unknown";
     try {
       const pkgPath = path.join(resolveGatewayPackageDir(), "package.json");
@@ -1309,12 +1309,12 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
       const pkg = JSON.parse(raw);
       if (pkg.version) openClawVersion = pkg.version;
     } catch {}
-    return { oneClawVersion, openClawVersion };
+    return { seekClawVersion, openClawVersion };
   });
 
   ipcMain.handle("settings:reset-config-and-relaunch", async () => {
     try {
-      const configPath = resolveUserConfigPath();
+      const configPath = resolveSeekclawConfigPath();
       if (fs.existsSync(configPath)) {
         fs.unlinkSync(configPath);
       }
@@ -1322,8 +1322,8 @@ export function registerSettingsIpc(opts: SettingsIpcOptions = {}): void {
       // 删除所有影响 detectOwnership() 判定的标记文件，确保重启后进入 Setup
       const stateDir = resolveUserStateDir();
       for (const marker of [
-        resolveOneclawConfigPath(),                                   // "oneclaw" 归属标记
-        path.join(stateDir, "openclaw-setup-baseline.json"),          // "legacy-oneclaw" 标记
+        resolveSeekclawConfigPath(),                                  // "seekclaw" 归属标记
+        path.join(stateDir, "openclaw-setup-baseline.json"),          // "legacy-seekclaw" 标记
         path.join(stateDir, "openclaw.last-known-good.json"),         // last-known-good 快照
       ]) {
         if (fs.existsSync(marker)) {
@@ -1683,7 +1683,7 @@ function reconcileFeishuFirstPairingWindow(config: any): void {
   openFeishuFirstPairingWindow();
 }
 
-// 统一运行 openclaw CLI 子命令，复用 OneClaw 内嵌 runtime 与网关入口。
+// 统一运行 openclaw CLI 子命令，复用 SeekClaw 内嵌 runtime 与网关入口。
 async function runGatewayCli(args: string[]): Promise<CliRunResult> {
   const nodeBin = resolveNodeBin();
   const entry = resolveGatewayEntry();

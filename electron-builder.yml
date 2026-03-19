@@ -1,6 +1,6 @@
-appId: com.oneclaw.app
-productName: OneClaw
-copyright: Copyright © 2025 OneClaw
+appId: com.seekclaw.app
+productName: SeekClaw
+copyright: Copyright © 2025 SeekClaw
 
 directories:
   output: out
@@ -24,26 +24,25 @@ mac:
   icon: assets/icon.icns
   category: public.app-category.productivity
   # zip artifactName 含 arch + -mac 后缀，供 electron-updater findFile 按架构匹配
-  # dmg.artifactName 会覆盖 DMG 的命名
-  artifactName: "OneClaw-${version}-${arch}-mac.${ext}"
-  # 签名身份由 CSC_NAME 环境变量指定（见 .env），避免把证书名写入仓库
-  hardenedRuntime: true
+  artifactName: "SeekClaw-${version}-${arch}-mac.${ext}"
+  # 移除签名/公证要求，使用 ad-hoc 签名
+  hardenedRuntime: false
   gatekeeperAssess: false
-  notarize: true
+  notarize: false
 
-# 自动更新：指向阿里云 CDN
+# 自动更新：指向 Cloudflare R2 加速域名
 publish:
   provider: generic
-  url: https://oneclaw.cn/releases/
+  url: https://dl.zknav.cn/releases/
 
 dmg:
   sign: false
-  title: "OneClaw ${version} Mac"
+  title: "SeekClaw ${version} Mac"
   # 不生成 .background.tiff
   background: null
   # 关闭 DMG 差分更新元数据，避免生成 .dmg.blockmap
   writeUpdateInfo: false
-  artifactName: "OneClaw-${version}-${arch}.${ext}"
+  artifactName: "SeekClaw-${version}-${arch}.${ext}"
   window:
     width: 540
     height: 450
@@ -73,4 +72,4 @@ nsis:
   runAfterFinish: true
   # 关闭 NSIS 差分包，避免生成 .exe.blockmap
   differentialPackage: false
-  artifactName: "OneClaw-Setup-${version}-${arch}.${ext}"
+  artifactName: "SeekClaw-Setup-${version}-${arch}.${ext}"

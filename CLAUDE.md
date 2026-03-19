@@ -1,8 +1,8 @@
-# OneClaw — Electron Shell for openclaw
+# SeekClaw — Electron Shell for openclaw
 
 ## What This Project Is
 
-OneClaw is a cross-platform desktop app that wraps the [openclaw](https://github.com/anthropics/claude-code) gateway into a standalone installable package. It ships a bundled Node.js 22 runtime and the openclaw npm package, so users need zero dev tooling — just install and run.
+SeekClaw is a cross-platform desktop app that wraps the [openclaw](https://github.com/anthropics/claude-code) gateway into a standalone installable package. It ships a bundled Node.js 22 runtime and the openclaw npm package, so users need zero dev tooling — just install and run.
 
 **Three-process architecture:**
 
@@ -22,14 +22,14 @@ The main process spawns a gateway subprocess, waits for its health check, then o
 | Language | TypeScript → CommonJS (no ESM) |
 | Chat UI | Lit 3 + Vite (file:// loaded SPA) |
 | Packager | electron-builder 26.7.0 |
-| Updater | electron-updater (generic provider, CDN at `oneclaw.cn`) |
+| Updater | electron-updater (generic provider, CDN at `seekclaw.cn`) |
 | Targets | macOS DMG + ZIP (arm64/x64), Windows NSIS (x64/arm64) |
 | Version scheme | Calendar-based: `YYYY.MMDD.N` (e.g. `2026.318.0`), auto-derived from git tag |
 
 ## Repository Layout
 
 ```
-oneclaw/
+seekclaw/
 ├── src/                    # 35 TypeScript modules (10032 LOC) + 13 test files
 │   ├── main.ts             # App entry, lifecycle, IPC, Dock toggle, config recovery
 │   ├── constants.ts        # Path resolution (dev vs packaged), health check params
@@ -45,7 +45,7 @@ oneclaw/
 │   ├── setup-ipc.ts        # Setup validation + config write + CLI install
 │   ├── setup-completion.ts # Setup wizard completion detection
 │   ├── install-detector.ts # Setup Step 0: installation conflict detection
-│   ├── oneclaw-config.ts   # OneClaw ownership config (deviceId, setupCompletedAt, migration)
+│   ├── seekclaw-config.ts   # SeekClaw ownership config (deviceId, setupCompletedAt, migration)
 │   ├── settings-ipc.ts     # Settings CRUD, backup/restore, Kimi, CLI, advanced
 │   ├── config-backup.ts    # Rolling backups + last-known-good snapshot + restore
 │   ├── share-copy.ts       # Remote share copy content (CDN fetch + local fallback)
@@ -156,7 +156,7 @@ npm run clean                # Remove all generated files
 ```
 ~/.openclaw/
   ├── openclaw.json                    # User config (provider, model, auth token, channels)
-  ├── oneclaw.config.json              # OneClaw ownership marker (deviceId, setupCompletedAt)
+  ├── seekclaw.config.json              # SeekClaw ownership marker (deviceId, setupCompletedAt)
   ├── openclaw.last-known-good.json    # Last successful gateway startup config snapshot
   ├── .device-id                       # Analytics device ID (UUID)
   ├── app.log                          # Application log (5MB truncate)
@@ -200,7 +200,7 @@ For comprehensive design guidelines, please refer to:
 
 5. **Tray app behavior.** Closing the window hides it; the app stays in the tray. `Cmd+Q` (or Quit from tray menu) actually quits. macOS Dock icon hides automatically when no windows are visible.
 
-6. **macOS signing.** By default uses ad-hoc identity (`-`). Set `ONECLAW_MAC_SIGN_AND_NOTARIZE=true` + `CSC_NAME`, `APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER` in `.env` for real signing.
+6. **macOS signing.** By default uses ad-hoc identity (`-`). Set `SEEKCLAW_MAC_SIGN_AND_NOTARIZE=true` + `CSC_NAME`, `APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER` in `.env` for real signing.
 
 7. **Version is auto-derived from git tag.** Format: `YYYY.MMDD.N` (e.g. `v2026.318.0`). `package.json` stays `0.0.0-dev`; CI extracts version from tag via `npm version`. Never manually edit `package.json` version.
 
@@ -214,7 +214,7 @@ For comprehensive design guidelines, please refer to:
 
 12. **Gateway entry fallback.** `resolveGatewayEntry()` tries `openclaw.mjs` first (new packages), then falls back to `gateway-entry.mjs` (legacy). Both paths must be considered during packaging verification.
 
-13. **CLI wrapper uses RC block markers.** Install/uninstall is idempotent via `# >>> oneclaw-cli >>>` / `# <<< oneclaw-cli <<<` markers in shell profiles. Always check for marker presence before modifying.
+13. **CLI wrapper uses RC block markers.** Install/uninstall is idempotent via `# >>> seekclaw-cli >>>` / `# <<< seekclaw-cli <<<` markers in shell profiles. Always check for marker presence before modifying.
 
 14. **Kimi Search API key is a sidecar file**, not in `openclaw.json`. Stored at `~/.openclaw/credentials/kimi-search-api-key`. Auto-reuses kimi-code provider key if no dedicated key exists.
 
@@ -222,9 +222,9 @@ For comprehensive design guidelines, please refer to:
 
 16. **Gateway port is configurable.** Resolution order: env `OPENCLAW_GATEWAY_PORT` > config `gateway.port` in `openclaw.json` > default `18789`. Don't hardcode port numbers — use `resolveGatewayPort()` from `constants.ts`.
 
-17. **Gateway npm update check is disabled.** OneClaw writes `update.checkOnStart = false` to the gateway config at startup. The gateway cannot self-update inside a packaged Electron app.
+17. **Gateway npm update check is disabled.** SeekClaw writes `update.checkOnStart = false` to the gateway config at startup. The gateway cannot self-update inside a packaged Electron app.
 
-18. **`oneclaw.config.json` is the ownership marker.** OneClaw uses this file to detect config ownership at startup. Detection flow: `oneclaw.config.json` exists → normal startup; `.device-id` exists → legacy migration; `openclaw.json` exists without marker → external OpenClaw takeover; nothing → fresh Setup. Do not delete this file manually.
+18. **`seekclaw.config.json` is the ownership marker.** SeekClaw uses this file to detect config ownership at startup. Detection flow: `seekclaw.config.json` exists → normal startup; `.device-id` exists → legacy migration; `openclaw.json` exists without marker → external OpenClaw takeover; nothing → fresh Setup. Do not delete this file manually.
 
 19. **Skill store config is standalone.** Registry URL stored in `~/.openclaw/skill-store.json`, not in gateway config. Skills installed to `~/.openclaw/workspace/skills/`, not `~/.openclaw/skills/`.
 

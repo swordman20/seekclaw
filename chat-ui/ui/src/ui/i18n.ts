@@ -1,5 +1,5 @@
 /**
- * Minimal i18n module for OneClaw Chat UI.
+ * Minimal i18n module for SeekClaw Chat UI.
  * ~25 string keys, Chinese / English.
  * Language detection: navigator.language or ?lang= URL param.
  */
@@ -9,10 +9,10 @@ export type Locale = "zh" | "en";
 const dict: Record<Locale, Record<string, string>> = {
   zh: {
     // App
-    "app.windowTitle": "OneClaw 一键安装OpenClaw",
+    "app.windowTitle": "SeekClaw 一键安装OpenClaw",
 
     // Sidebar
-    "sidebar.brand": "OneClaw",
+    "sidebar.brand": "SeekClaw",
     "sidebar.newChat": "新建对话",
     "sidebar.settings": "设置",
     "sidebar.docs": "教程文档",
@@ -91,7 +91,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "skillStore.installFailed": "安装失败，请稍后重试",
     "skillStore.uninstallFailed": "卸载失败，请稍后重试",
 
-    // OneClaw settings page
+    // SeekClaw settings page
     "settings.title": "设置",
     "settings.subtitle": "管理外观显示与聊天展示偏好",
     "settings.backToChat": "返回对话",
@@ -120,7 +120,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "chat.attachFile": "添加文件",
 
     // Share prompt
-    "sharePrompt.title": "分享 OneClaw 给朋友",
+    "sharePrompt.title": "分享 SeekClaw 给朋友",
     "sharePrompt.subtitle": "复制下面这段文案分享给你的朋友或群聊，作者会非常感谢你哟😘",
     "sharePrompt.copy": "复制文案",
     "sharePrompt.copied": "已复制",
@@ -147,10 +147,10 @@ const dict: Record<Locale, Record<string, string>> = {
   },
   en: {
     // App
-    "app.windowTitle": "OneClaw - One-click installer for OpenClaw",
+    "app.windowTitle": "SeekClaw - One-click installer for OpenClaw",
 
     // Sidebar
-    "sidebar.brand": "OneClaw",
+    "sidebar.brand": "SeekClaw",
     "sidebar.newChat": "New Chat",
     "sidebar.settings": "Settings",
     "sidebar.docs": "Docs",
@@ -229,7 +229,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "skillStore.installFailed": "Install failed. Please try again later.",
     "skillStore.uninstallFailed": "Uninstall failed. Please try again later.",
 
-    // OneClaw settings page
+    // SeekClaw settings page
     "settings.title": "Settings",
     "settings.subtitle": "Manage appearance and chat display preferences",
     "settings.backToChat": "Back to chat",
@@ -259,7 +259,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "chat.attachFile": "Attach file",
 
     // Share prompt
-    "sharePrompt.title": "Share OneClaw with friends",
+    "sharePrompt.title": "Share SeekClaw with friends",
     "sharePrompt.subtitle":
       "Copy this text and share it with your friends or group chats. The creator will really appreciate it 😘",
     "sharePrompt.copy": "Copy text",

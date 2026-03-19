@@ -112,14 +112,14 @@ type SharePromptStore = {
   shownVersions: number[];
 };
 
-type OneClawUpdateState = {
+type SeekClawUpdateState = {
   status: "hidden" | "available" | "downloading";
   version: string | null;
   percent: number | null;
   showBadge: boolean;
 };
 
-type OneClawPairingRequest = {
+type SeekClawPairingRequest = {
   channel: string;
   code: string;
   id: string;
@@ -128,48 +128,48 @@ type OneClawPairingRequest = {
   lastSeenAt: string;
 };
 
-type OneClawPairingChannelState = {
+type SeekClawPairingChannelState = {
   channel: string;
   pendingCount: number;
-  requests: OneClawPairingRequest[];
+  requests: SeekClawPairingRequest[];
   updatedAt: number;
   lastAutoApprovedAt: number | null;
   lastAutoApprovedName: string | null;
 };
 
-type OneClawIpcResult = {
+type SeekClawIpcResult = {
   success?: boolean;
   message?: string;
 };
 
-type OneClawPairingState = {
+type SeekClawPairingState = {
   pendingCount: number;
-  requests: OneClawPairingRequest[];
+  requests: SeekClawPairingRequest[];
   updatedAt: number;
-  channels: Record<string, OneClawPairingChannelState>;
+  channels: Record<string, SeekClawPairingChannelState>;
 };
 
-type OneClawBridge = {
+type SeekClawBridge = {
   onNavigate?: (cb: (payload: { view: "settings" }) => void) => (() => void) | void;
-  onUpdateState?: (cb: (payload: OneClawUpdateState) => void) => (() => void) | void;
-  getUpdateState?: () => Promise<OneClawUpdateState>;
+  onUpdateState?: (cb: (payload: SeekClawUpdateState) => void) => (() => void) | void;
+  getUpdateState?: () => Promise<SeekClawUpdateState>;
   onPairingState?: (
-    cb: (payload: OneClawPairingState) => void,
+    cb: (payload: SeekClawPairingState) => void,
   ) => (() => void) | void;
-  getPairingState?: () => Promise<OneClawPairingState>;
+  getPairingState?: () => Promise<SeekClawPairingState>;
   refreshPairingState?: () => void;
   settingsApproveFeishuPairing?: (
     params: { code: string; id?: string; name?: string },
-  ) => Promise<OneClawIpcResult>;
+  ) => Promise<SeekClawIpcResult>;
   settingsRejectFeishuPairing?: (
     params: { code: string; id?: string; name?: string },
-  ) => Promise<OneClawIpcResult>;
+  ) => Promise<SeekClawIpcResult>;
   settingsApproveWecomPairing?: (
     params: { code: string; id?: string; name?: string },
-  ) => Promise<OneClawIpcResult>;
+  ) => Promise<SeekClawIpcResult>;
   settingsRejectWecomPairing?: (
     params: { code: string; id?: string; name?: string },
-  ) => Promise<OneClawIpcResult>;
+  ) => Promise<SeekClawIpcResult>;
 };
 
 const SHARE_PROMPT_STORE_KEY = "openclaw.share.prompt.v1";
@@ -645,13 +645,13 @@ export class OpenClawApp extends LitElement {
   sharePromptSubtitle = t("sharePrompt.subtitle");
   sharePromptText = "";
   sharePromptVersion: number | null = null;
-  updateBannerState: OneClawUpdateState = {
+  updateBannerState: SeekClawUpdateState = {
     status: "hidden",
     version: null,
     percent: null,
     showBadge: false,
   };
-  pairingState: OneClawPairingState = {
+  pairingState: SeekClawPairingState = {
     pendingCount: 0,
     requests: [],
     updatedAt: Date.now(),
@@ -759,12 +759,12 @@ export class OpenClawApp extends LitElement {
   }
 
   // 统一读取 preload 暴露的 bridge，避免在多个方法里重复类型断言。
-  private getOneClawBridge(): OneClawBridge | undefined {
-    return (window as unknown as { oneclaw?: OneClawBridge }).oneclaw;
+  private getSeekClawBridge(): SeekClawBridge | undefined {
+    return (window as unknown as { seekclaw?: SeekClawBridge }).seekclaw;
   }
 
   // 规范化更新状态 payload，保证渲染层只消费合法值。
-  private applyUpdateBannerState(payload: OneClawUpdateState | null | undefined) {
+  private applyUpdateBannerState(payload: SeekClawUpdateState | null | undefined) {
     const nextStatus = payload?.status;
     if (nextStatus !== "hidden" && nextStatus !== "available" && nextStatus !== "downloading") {
       return;
@@ -782,9 +782,9 @@ export class OpenClawApp extends LitElement {
   }
 
   // 规范化渠道配对状态，避免渲染层处理空值或脏数据。
-  private applyPairingState(payload: OneClawPairingState | null | undefined) {
+  private applyPairingState(payload: SeekClawPairingState | null | undefined) {
     const rawRequests = Array.isArray(payload?.requests) ? payload.requests : [];
-    const requests: OneClawPairingRequest[] = rawRequests
+    const requests: SeekClawPairingRequest[] = rawRequests
       .map((item) => ({
         channel: String(item?.channel ?? "").trim().toLowerCase(),
         code: String(item?.code ?? "").trim(),
@@ -806,7 +806,7 @@ export class OpenClawApp extends LitElement {
     const channels = Object.fromEntries(
       Object.entries(rawChannels).map(([channel, item]) => {
         const channelRequests = Array.isArray(item?.requests) ? item.requests : [];
-        const normalizedRequests: OneClawPairingRequest[] = channelRequests
+        const normalizedRequests: SeekClawPairingRequest[] = channelRequests
           .map((request) => ({
             channel,
             code: String(request?.code ?? "").trim(),
@@ -839,7 +839,7 @@ export class OpenClawApp extends LitElement {
           lastAutoApprovedName,
         }];
       })
-    ) as Record<string, OneClawPairingChannelState>;
+    ) as Record<string, SeekClawPairingChannelState>;
 
     this.pairingState = {
       pendingCount: Math.max(pendingCount, requests.length),
@@ -854,7 +854,7 @@ export class OpenClawApp extends LitElement {
     if (this.updateStateCleanup) {
       return;
     }
-    const bridge = this.getOneClawBridge();
+    const bridge = this.getSeekClawBridge();
     if (bridge?.onUpdateState) {
       const unsubscribe = bridge.onUpdateState((payload) => this.applyUpdateBannerState(payload));
       this.updateStateCleanup = typeof unsubscribe === "function" ? unsubscribe : null;
@@ -873,7 +873,7 @@ export class OpenClawApp extends LitElement {
     if (this.pairingStateCleanup) {
       return;
     }
-    const bridge = this.getOneClawBridge();
+    const bridge = this.getSeekClawBridge();
     if (bridge?.onPairingState) {
       const unsubscribe = bridge.onPairingState((payload) => this.applyPairingState(payload));
       this.pairingStateCleanup = typeof unsubscribe === "function" ? unsubscribe : null;
@@ -888,7 +888,7 @@ export class OpenClawApp extends LitElement {
   }
 
   // 返回当前首条待审批请求，供快捷批准/拒绝入口复用。
-  private getFirstPendingPairing(): OneClawPairingRequest | null {
+  private getFirstPendingPairing(): SeekClawPairingRequest | null {
     return this.pairingState.requests[0] ?? null;
   }
 
@@ -901,7 +901,7 @@ export class OpenClawApp extends LitElement {
     if (!target?.code) {
       return;
     }
-    const bridge = this.getOneClawBridge();
+    const bridge = this.getSeekClawBridge();
     const approve = target.channel === "wecom"
       ? bridge?.settingsApproveWecomPairing
       : bridge?.settingsApproveFeishuPairing;
@@ -937,7 +937,7 @@ export class OpenClawApp extends LitElement {
     if (!target?.code) {
       return;
     }
-    const bridge = this.getOneClawBridge();
+    const bridge = this.getSeekClawBridge();
     const reject = target.channel === "wecom"
       ? bridge?.settingsRejectWecomPairing
       : bridge?.settingsRejectFeishuPairing;
@@ -980,7 +980,7 @@ export class OpenClawApp extends LitElement {
     if (this.appNavigateCleanup) {
       return;
     }
-    const bridge = this.getOneClawBridge();
+    const bridge = this.getSeekClawBridge();
     if (!bridge?.onNavigate) {
       return;
     }
@@ -992,7 +992,7 @@ export class OpenClawApp extends LitElement {
       this.settingsTabHint = this.pairingState.pendingCount > 0 ? "channels" : null;
       this.applySettings({
         ...this.settings,
-        oneclawView: "settings",
+        seekclawView: "settings",
         navCollapsed: false,
       });
     });
@@ -1029,12 +1029,12 @@ export class OpenClawApp extends LitElement {
   // 从 preload 加载已配置的模型列表
   async loadConfiguredModels() {
     const w = window as Record<string, unknown>;
-    const oneclaw = w.oneclaw as Record<string, (...args: unknown[]) => Promise<unknown>> | undefined;
-    if (!oneclaw?.settingsGetConfiguredModels) {
+    const seekclaw = w.seekclaw as Record<string, (...args: unknown[]) => Promise<unknown>> | undefined;
+    if (!seekclaw?.settingsGetConfiguredModels) {
       return;
     }
     try {
-      const res = (await oneclaw.settingsGetConfiguredModels()) as { success?: boolean; data?: ConfiguredModel[] } | undefined;
+      const res = (await seekclaw.settingsGetConfiguredModels()) as { success?: boolean; data?: ConfiguredModel[] } | undefined;
       const models = res?.data;
       this.configuredModels = Array.isArray(models) ? models : [];
       // 没有手动选择时，默认选中 isDefault 的模型
@@ -1167,8 +1167,8 @@ export class OpenClawApp extends LitElement {
   // 从主进程拉取最新分享文案（主进程负责远端拉取与本地兜底）。
   private async fetchShareCopyPayload(): Promise<ShareCopyPayload | null> {
     const bridge = (window as unknown as {
-      oneclaw?: { settingsGetShareCopy?: () => Promise<unknown> };
-    }).oneclaw;
+      seekclaw?: { settingsGetShareCopy?: () => Promise<unknown> };
+    }).seekclaw;
     if (!bridge?.settingsGetShareCopy) {
       return null;
     }

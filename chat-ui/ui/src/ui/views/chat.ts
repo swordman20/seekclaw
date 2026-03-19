@@ -430,11 +430,11 @@ export function renderChat(props: ChatProps) {
               type="button"
               @click=${async () => {
                 const w = window as Record<string, unknown>;
-                const oneclaw = w.oneclaw as Record<string, (...args: unknown[]) => Promise<string[]>> | undefined;
-                if (!oneclaw?.selectFiles) {
+                const seekclaw = w.seekclaw as Record<string, (...args: unknown[]) => Promise<string[]>> | undefined;
+                if (!seekclaw?.selectFiles) {
                   return;
                 }
-                const paths = await oneclaw.selectFiles();
+                const paths = await seekclaw.selectFiles();
                 if (!paths?.length) {
                   return;
                 }

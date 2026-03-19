@@ -41,7 +41,7 @@ import {
 import { readUserConfig, writeUserConfig } from "./provider-config";
 import { resolveKimiSearchApiKey } from "./kimi-config";
 import { reconcileCliOnAppLaunch } from "./cli-integration";
-import { detectOwnership, migrateFromLegacy, markSetupComplete } from "./oneclaw-config";
+import { detectOwnership, migrateFromLegacy, markSetupComplete } from "./seekclaw-config";
 import { startTokenRefresh, stopTokenRefresh, loadOAuthToken } from "./kimi-oauth";
 import * as log from "./logger";
 import * as analytics from "./analytics";
@@ -234,7 +234,7 @@ function promptConfigRecovery(opts: {
 // Gateway 启动失败时提示用户进入备份恢复，避免反复重启无效。
 function reportGatewayStartFailure(source: string): RecoveryAction {
   const logPath = resolveGatewayLogPath();
-  const title = "OneClaw Gateway 启动失败";
+  const title = "SeekClaw Gateway 启动失败";
   const detail =
     `来源: ${source}\n` +
     `建议先前往设置 → 备份与恢复，回退到最近可用配置。\n` +
@@ -258,7 +258,7 @@ function reportConfigInvalidFailure(parseError?: string): RecoveryAction {
 
   log.error(`配置文件损坏，JSON 解析失败: ${parseError ?? "unknown"}`);
   return promptConfigRecovery({
-    title: "OneClaw 配置文件损坏",
+    title: "SeekClaw 配置文件损坏",
     message: "检测到 openclaw.json 不是有效 JSON，Gateway 无法启动。",
     detail,
   });
@@ -290,7 +290,7 @@ function migrateSessionMemoryHook(): void {
   }
 }
 
-// 禁止 openclaw gateway 自行检查 npm 更新（OneClaw 整包打包，用户无法独立更新 gateway）
+// 禁止 openclaw gateway 自行检查 npm 更新（SeekClaw 整包打包，用户无法独立更新 gateway）
 function migrateDisableGatewayUpdateCheck(): void {
   try {
     const config = readUserConfig();
@@ -509,7 +509,7 @@ setupManager.setOnComplete(async () => {
     delete config.wizard.pendingAt;
     writeUserConfig(config);
 
-    // 写入 oneclaw.config.json 归属标记
+    // 写入 seekclaw.config.json 归属标记
     markSetupComplete();
   } catch (err: any) {
     log.error(`写入 setup 完成标记失败: ${err?.message ?? err}`);
@@ -621,7 +621,7 @@ app.whenReady().then(async () => {
 
   // 下载进度 → 更新托盘 tooltip
   setProgressCallback((pct) => {
-    tray.setTooltip(pct != null ? `OneClaw — 下载更新 ${pct.toFixed(0)}%` : "OneClaw");
+    tray.setTooltip(pct != null ? `SeekClaw — 下载更新 ${pct.toFixed(0)}%` : "SeekClaw");
   });
 
   tray.create({
@@ -666,7 +666,7 @@ app.whenReady().then(async () => {
   log.info(`[startup] config ownership: ${ownership}`);
 
   switch (ownership) {
-    case "oneclaw":
+    case "seekclaw":
       // 状态 1：正常启动
       migrateSessionMemoryHook();
       migrateDisableGatewayUpdateCheck();
@@ -676,9 +676,9 @@ app.whenReady().then(async () => {
       await startGatewayAndShowMain("app:startup");
       break;
 
-    case "legacy-oneclaw":
-      // 状态 2：老 OneClaw 用户升级 → 自动迁移
-      log.info("[startup] legacy OneClaw detected, migrating...");
+    case "legacy-seekclaw":
+      // 状态 2：老 SeekClaw 用户升级 → 自动迁移
+      log.info("[main] 检测到老版 SeekClaw 配置，开始迁移...");
       migrateFromLegacy();
       migrateSessionMemoryHook();
       migrateDisableGatewayUpdateCheck();

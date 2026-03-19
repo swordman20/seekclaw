@@ -1,5 +1,5 @@
 /**
- * OneClaw sidebar component.
+ * SeekClaw sidebar component.
  * Replaces the upstream 13-tab navigation with a compact chat sidebar.
  */
 import { html } from "lit";
@@ -7,7 +7,7 @@ import { nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { t } from "./i18n.ts";
 import { icons } from "./icons.ts";
-import oneClawLogo from "../assets/openclaw-favicon.svg";
+import seekClawLogo from "../assets/openclaw-favicon.svg";
 
 export type SidebarProps = {
   connected: boolean;
@@ -42,7 +42,7 @@ function startInlineRename(
 ) {
   const input = document.createElement("input");
   input.type = "text";
-  input.className = "oneclaw-sidebar__session-edit";
+  input.className = "seekclaw-sidebar__session-edit";
   input.value = currentLabel;
   let saved = false;
   const save = () => {
@@ -98,10 +98,10 @@ export function renderSidebar(props: SidebarProps) {
     : t("sidebar.updateReady");
 
   return html`
-    <aside class="oneclaw-sidebar">
-      <div class="oneclaw-sidebar__brand">
+    <aside class="seekclaw-sidebar">
+      <div class="seekclaw-sidebar__brand">
         <button
-          class="oneclaw-sidebar__collapse"
+          class="seekclaw-sidebar__collapse"
           type="button"
           @click=${props.onToggleSidebar}
           data-tooltip=${t("sidebar.collapse")}
@@ -112,11 +112,11 @@ export function renderSidebar(props: SidebarProps) {
         </button>
       </div>
 
-      <nav class="oneclaw-sidebar__nav">
+      <nav class="seekclaw-sidebar__nav">
         <!-- Prominent New Chat Button -->
         <div style="padding: 12px 14px 16px;">
           <button
-            class="oneclaw-sidebar__new-chat-btn"
+            class="seekclaw-sidebar__new-chat-btn"
             @click=${props.onNewChat}
           >
             ${icons.messagePlus} ${t("sidebar.newChat")}
@@ -124,12 +124,12 @@ export function renderSidebar(props: SidebarProps) {
         </div>
 
         <!-- 会话列表标题行 -->
-        <div class="oneclaw-sidebar__session-header">
-          <span class="oneclaw-sidebar__section-title">${t("sidebar.agent")}</span>
+        <div class="seekclaw-sidebar__session-header">
+          <span class="seekclaw-sidebar__section-title">${t("sidebar.agent")}</span>
         </div>
 
         <!-- 会话列表 -->
-        <div class="oneclaw-sidebar__session-list">
+        <div class="seekclaw-sidebar__session-list">
           ${repeat(
             props.sessionOptions,
             (s) => s.key,
@@ -137,20 +137,20 @@ export function renderSidebar(props: SidebarProps) {
               const isActive = s.key === props.currentSessionKey;
               return html`
                 <div
-                  class="oneclaw-sidebar__session-item ${isActive ? "active" : ""}"
+                  class="seekclaw-sidebar__session-item ${isActive ? "active" : ""}"
                   @click=${() => props.onSelectSession(s.key)}
                 >
                   <span
-                    class="oneclaw-sidebar__session-name"
+                    class="seekclaw-sidebar__session-name"
                     title=${s.label}
                   >${s.label}</span>
                   <button
-                    class="oneclaw-sidebar__session-action"
+                    class="seekclaw-sidebar__session-action"
                     type="button"
                     @click=${(e: Event) => {
                       e.stopPropagation();
-                      const item = (e.currentTarget as HTMLElement).closest(".oneclaw-sidebar__session-item")!;
-                      const span = item.querySelector(".oneclaw-sidebar__session-name") as HTMLSpanElement;
+                      const item = (e.currentTarget as HTMLElement).closest(".seekclaw-sidebar__session-item")!;
+                      const span = item.querySelector(".seekclaw-sidebar__session-name") as HTMLSpanElement;
                       startInlineRename(span, s.key, s.label, props.onRenameSession);
                     }}
                     data-tooltip=${t("sidebar.rename")}
@@ -159,7 +159,7 @@ export function renderSidebar(props: SidebarProps) {
                     ${icons.edit}
                   </button>
                   <button
-                    class="oneclaw-sidebar__session-action"
+                    class="seekclaw-sidebar__session-action"
                     type="button"
                     @click=${(e: Event) => {
                       e.stopPropagation();
@@ -177,11 +177,11 @@ export function renderSidebar(props: SidebarProps) {
         </div>
       </nav>
 
-      <div class="oneclaw-sidebar__footer">
+      <div class="seekclaw-sidebar__footer">
         ${showUpdateAction
           ? html`
               <button
-                class="oneclaw-sidebar__item oneclaw-sidebar__item--update ${props.updateStatus === "downloading"
+                class="seekclaw-sidebar__item seekclaw-sidebar__item--update ${props.updateStatus === "downloading"
                   ? "is-loading"
                   : ""}"
                 type="button"
@@ -189,65 +189,65 @@ export function renderSidebar(props: SidebarProps) {
                 data-tooltip=${props.updateVersion ? `${updateLabel} (${props.updateVersion})` : updateLabel}
                 ?disabled=${props.updateStatus === "downloading"}
               >
-                <span class="oneclaw-sidebar__icon">
+                <span class="seekclaw-sidebar__icon">
                   ${props.updateStatus === "downloading" ? icons.loader : icons.zap}
                 </span>
-                <span class="oneclaw-sidebar__label">${updateLabel}</span>
+                <span class="seekclaw-sidebar__label">${updateLabel}</span>
                 ${props.updateShowBadge
-                  ? html`<span class="oneclaw-sidebar__update-dot" aria-hidden="true"></span>`
+                  ? html`<span class="seekclaw-sidebar__update-dot" aria-hidden="true"></span>`
                   : nothing}
               </button>
             `
           : nothing}
         <button
-          class="oneclaw-sidebar__item oneclaw-sidebar__item--settings ${props.settingsActive
+          class="seekclaw-sidebar__item seekclaw-sidebar__item--settings ${props.settingsActive
             ? "active"
             : ""}"
           type="button"
           @click=${props.onOpenSettings}
           data-tooltip=${t("sidebar.settings")}
         >
-          <span class="oneclaw-sidebar__icon">${icons.settings}</span>
-          <span class="oneclaw-sidebar__label">${t("sidebar.settings")}</span>
+          <span class="seekclaw-sidebar__icon">${icons.settings}</span>
+          <span class="seekclaw-sidebar__label">${t("sidebar.settings")}</span>
         </button>
 
         <button
-          class="oneclaw-sidebar__item ${props.skillsActive ? "active" : ""}"
+          class="seekclaw-sidebar__item ${props.skillsActive ? "active" : ""}"
           type="button"
           @click=${props.onOpenSkillStore}
           data-tooltip=${t("sidebar.skillStore")}
         >
-          <span class="oneclaw-sidebar__icon">${icons.puzzle}</span>
-          <span class="oneclaw-sidebar__label">${t("sidebar.skillStore")}</span>
+          <span class="seekclaw-sidebar__icon">${icons.puzzle}</span>
+          <span class="seekclaw-sidebar__label">${t("sidebar.skillStore")}</span>
         </button>
 
         <button
-          class="oneclaw-sidebar__item"
+          class="seekclaw-sidebar__item"
           type="button"
           @click=${props.onOpenDocs}
           data-tooltip=${t("sidebar.docs")}
         >
-          <span class="oneclaw-sidebar__icon">${icons.book}</span>
-          <span class="oneclaw-sidebar__label">${t("sidebar.docs")}</span>
+          <span class="seekclaw-sidebar__icon">${icons.book}</span>
+          <span class="seekclaw-sidebar__label">${t("sidebar.docs")}</span>
         </button>
 
         <button
-          class="oneclaw-sidebar__item"
+          class="seekclaw-sidebar__item"
           type="button"
           @click=${props.onOpenWebUI}
           data-tooltip=${t("sidebar.fullUI")}
         >
-          <span class="oneclaw-sidebar__icon">${icons.externalLink}</span>
-          <span class="oneclaw-sidebar__label">${t("sidebar.fullUI")}</span>
+          <span class="seekclaw-sidebar__icon">${icons.externalLink}</span>
+          <span class="seekclaw-sidebar__label">${t("sidebar.fullUI")}</span>
         </button>
 
-        <div class="oneclaw-sidebar__status-row">
-          <div class="oneclaw-sidebar__status">
+        <div class="seekclaw-sidebar__status-row">
+          <div class="seekclaw-sidebar__status">
             <span class="statusDot ${statusClass}"></span>
-            <span class="oneclaw-sidebar__status-text">${statusText}</span>
+            <span class="seekclaw-sidebar__status-text">${statusText}</span>
           </div>
           <button
-            class="oneclaw-sidebar__refresh ${props.connected ? "" : "disconnected"}"
+            class="seekclaw-sidebar__refresh ${props.connected ? "" : "disconnected"}"
             type="button"
             ?disabled=${props.refreshDisabled}
             @click=${props.onRefresh}

@@ -3,7 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import { execFile } from "child_process";
 import { resolveCliNodeBin, resolveGatewayEntry, resolveUserStateDir, IS_WIN } from "./constants";
-import { readOneclawConfig, writeOneclawConfig } from "./oneclaw-config";
+import { readSeekclawConfig, writeSeekclawConfig } from "./seekclaw-config";
 import * as log from "./logger";
 
 // CLI 安装结果，供 Setup 流程统一显示与埋点。
@@ -24,12 +24,12 @@ type WinCliBinDirs = {
   legacyBinDirs: string[];
 };
 
-// Wrapper 脚本中的标记字符串，用于识别由 OneClaw 生成的文件。
-const CLI_MARKER = "OneClaw CLI";
+// Wrapper 脚本中的标记字符串，用于识别由 SeekClaw 生成的文件。
+const CLI_MARKER = "SeekClaw CLI";
 
 // rc 注入块标记，安装可幂等覆盖，卸载可精确移除。
-const RC_BLOCK_START = "# >>> oneclaw-cli >>>";
-const RC_BLOCK_END = "# <<< oneclaw-cli <<<";
+const RC_BLOCK_START = "# >>> seekclaw-cli >>>";
+const RC_BLOCK_END = "# <<< seekclaw-cli <<<";
 
 // 将错误统一格式化成可展示文本，避免在 catch 中到处写类型判断。
 function errorMessage(err: unknown): string {
@@ -57,8 +57,11 @@ function getWinLocalAppDataDir(): string {
 // 解析 Windows 当前路径与旧版迁移路径，避免老用户 PATH 残留。
 export function resolveWinCliBinDirsForPaths(localAppDataDir: string, userStateDir: string): WinCliBinDirs {
   return {
-    currentBinDir: path.win32.join(localAppDataDir, "OneClaw", "bin"),
-    legacyBinDirs: [path.win32.join(userStateDir, "bin")],
+    currentBinDir: path.win32.join(localAppDataDir, "SeekClaw", "bin"),
+    legacyBinDirs: [
+      path.win32.join(userStateDir, "bin"),
+      path.win32.join(localAppDataDir, "SeekClaw", "bin"),
+    ],
   };
 }
 
@@ -110,7 +113,7 @@ function escapeForPowerShellSingleQuoted(value: string): string {
 // 旧版 cli-preferences.json 路径，仅用于一次性迁移
 const LEGACY_CLI_PREFERENCE_FILE = "cli-preferences.json";
 
-// 从旧版 sidecar 文件迁移 CLI 偏好到 oneclaw.config.json
+// 从旧版 sidecar 文件迁移 CLI 偏好到 seekclaw.config.json
 function migrateLegacyCliPreference(): boolean | undefined {
   const legacyPath = path.join(resolveUserStateDir(), LEGACY_CLI_PREFERENCE_FILE);
   if (!fs.existsSync(legacyPath)) return undefined;
@@ -119,8 +122,8 @@ function migrateLegacyCliPreference(): boolean | undefined {
     const raw = JSON.parse(fs.readFileSync(legacyPath, "utf-8"));
     if (raw && typeof raw === "object" && raw.version === 1 && typeof raw.enabled === "boolean") {
       const enabled: boolean = raw.enabled;
-      // 写入 oneclaw.config.json 并删除旧文件
-      setCliEnabledPreference(enabled);
+      // 写入 seekclaw.config.json 并删除旧文件
+      setCliPreference(enabled ? "installed" : "uninstalled");
       fs.unlinkSync(legacyPath);
       log.info(`[cli] migrated CLI preference from legacy sidecar: enabled=${enabled}`);
       return enabled;
@@ -131,16 +134,16 @@ function migrateLegacyCliPreference(): boolean | undefined {
   return undefined;
 }
 
-// 持久化 CLI 偏好到 oneclaw.config.json
-export function setCliEnabledPreference(enabled: boolean): void {
-  const config = readOneclawConfig() ?? {};
-  config.cliPreference = enabled ? "installed" : "uninstalled";
-  writeOneclawConfig(config);
+// 持久化 CLI 偏好到 seekclaw.config.json
+export function setCliPreference(pref: "installed" | "uninstalled"): void {
+  const config = readSeekclawConfig() ?? {};
+  config.cliPreference = pref;
+  writeSeekclawConfig(config);
 }
 
-// 读取用户显式选择的 CLI 偏好；无记录时返回 undefined
-export function getCliEnabledPreference(): boolean | undefined {
-  const config = readOneclawConfig();
+// 读取用户显式选择的 CLI 偏好（旧版布尔型兼容）
+export function getCliPreference(): boolean | undefined {
+  const config = readSeekclawConfig();
   if (config?.cliPreference === "installed") return true;
   if (config?.cliPreference === "uninstalled") return false;
   // 兼容旧版：尝试从 cli-preferences.json 迁移
@@ -205,11 +208,11 @@ export function buildPosixWrapperForPaths(nodeBin: string, entry: string): strin
     `APP_NODE="${safeNodeBin}"`,
     `APP_ENTRY="${safeEntry}"`,
     'if [ ! -f "$APP_NODE" ]; then',
-    '  echo "Error: OneClaw not found at $APP_NODE" >&2',
+    '  echo "Error: SeekClaw not found at $APP_NODE" >&2',
     "  exit 127",
     "fi",
     'if [ ! -f "$APP_ENTRY" ]; then',
-    '  echo "Error: OneClaw entry not found at $APP_ENTRY" >&2',
+    '  echo "Error: SeekClaw entry not found at $APP_ENTRY" >&2',
     "  exit 127",
     "fi",
     "export OPENCLAW_NO_RESPAWN=1",
@@ -236,11 +239,11 @@ export function buildWinWrapperForPaths(nodeBin: string, entry: string): string 
     `set "APP_NODE=${safeNodeBin}"`,
     `set "APP_ENTRY=${safeEntry}"`,
     'if not exist "%APP_NODE%" (',
-    "  echo Error: OneClaw Node runtime not found. 1>&2",
+    "  echo Error: SeekClaw Node runtime not found. 1>&2",
     "  exit /b 127",
     ")",
     'if not exist "%APP_ENTRY%" (',
-    "  echo Error: OneClaw entry not found. 1>&2",
+    "  echo Error: SeekClaw entry not found. 1>&2",
     "  exit /b 127",
     ")",
     'set "OPENCLAW_NO_RESPAWN=1"',
@@ -255,7 +258,7 @@ function buildWinWrapper(): string {
   return buildWinWrapperForPaths(resolveCliNodeBin(), resolveGatewayEntry());
 }
 
-// 判断指定 wrapper 是否由 OneClaw 管理，避免误删用户自定义脚本。
+// 判断指定 wrapper 是否由 SeekClaw 管理，避免误删用户自定义脚本。
 function hasManagedWrapper(wrapperPath: string): boolean {
   if (!fs.existsSync(wrapperPath)) return false;
   try {
@@ -301,7 +304,7 @@ function resolvePosixRcPaths(): string[] {
   return [path.join(home, ".zprofile"), path.join(home, ".bash_profile")];
 }
 
-// 构建 OneClaw 管理的 rc 注入块，使用绝对路径避免与状态目录配置脱节。
+// 构建 SeekClaw 管理的 rc 注入块，使用绝对路径避免与状态目录配置脱节。
 function buildRcBlock(binDir: string): string {
   const safeBinDir = escapeForPosixDoubleQuoted(binDir);
   return [
@@ -314,7 +317,7 @@ function buildRcBlock(binDir: string): string {
   ].join("\n");
 }
 
-// 从 rc 文本移除 OneClaw 管理块，仅删除带完整标记的块，避免误伤用户自定义行。
+// 从 rc 文本移除 SeekClaw 管理块，仅删除带完整标记的块，避免误伤用户自定义行。
 function stripManagedRcBlock(content: string): { text: string; removed: boolean } {
   const lines = content.split(/\r?\n/);
   const output: string[] = [];
@@ -354,7 +357,7 @@ function detectEol(text: string): "\n" | "\r\n" {
   return text.includes("\r\n") ? "\r\n" : "\n";
 }
 
-// 向 rc 文件幂等写入 OneClaw 管理块，重复安装不会产生重复内容。
+// 向 rc 文件幂等写入 SeekClaw 管理块，重复安装不会产生重复内容。
 function upsertRcBlock(rcPath: string, binDir: string): void {
   const current = fs.existsSync(rcPath) ? fs.readFileSync(rcPath, "utf-8") : "";
   const eol = detectEol(current);
@@ -371,7 +374,7 @@ function upsertRcBlock(rcPath: string, binDir: string): void {
   }
 }
 
-// 从 rc 文件移除 OneClaw 管理块，仅处理本程序写入的标记块。
+// 从 rc 文件移除 SeekClaw 管理块，仅处理本程序写入的标记块。
 function removeRcBlock(rcPath: string): void {
   if (!fs.existsSync(rcPath)) return;
 
@@ -557,7 +560,7 @@ async function uninstallCliPosix(): Promise<CliResult> {
 // 安装 CLI：持久化用户意图，并把旧版 Windows PATH 迁移到新目录。
 export async function installCli(): Promise<CliResult> {
   try {
-    setCliEnabledPreference(true);
+    setCliPreference("installed");
     return IS_WIN ? await installCliWindows() : await installCliPosix();
   } catch (err) {
     const msg = errorMessage(err);
@@ -569,7 +572,7 @@ export async function installCli(): Promise<CliResult> {
 // 卸载 CLI：记录显式关闭偏好，并清理当前与旧版安装痕迹。
 export async function uninstallCli(): Promise<CliResult> {
   try {
-    setCliEnabledPreference(false);
+    setCliPreference("uninstalled");
     return IS_WIN ? await uninstallCliWindows() : await uninstallCliPosix();
   } catch (err) {
     const msg = errorMessage(err);
@@ -583,7 +586,7 @@ export function getCliStatus(): CliStatus {
   const footprint = readCliInstallFootprint();
   const enabled =
     inferCliEnabledPreference(
-      getCliEnabledPreference(),
+      getCliPreference(),
       footprint.currentInstalled,
       footprint.legacyInstalled,
     ) === true;
@@ -605,7 +608,7 @@ export async function reconcileCliOnAppLaunch(): Promise<void> {
   if (!IS_WIN) return;
 
   const footprint = readCliInstallFootprint();
-  const savedEnabled = getCliEnabledPreference();
+  const savedEnabled = getCliPreference();
   const inferredEnabled = inferCliEnabledPreference(
     savedEnabled,
     footprint.currentInstalled,
@@ -614,7 +617,7 @@ export async function reconcileCliOnAppLaunch(): Promise<void> {
   if (inferredEnabled === undefined) return;
 
   if (savedEnabled !== inferredEnabled) {
-    setCliEnabledPreference(inferredEnabled);
+    setCliPreference(inferredEnabled ? "installed" : "uninstalled");
     log.info(`[cli] Migrated CLI enabled preference on launch: ${inferredEnabled}`);
   }
 

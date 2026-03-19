@@ -1,7 +1,7 @@
 /**
  * package-resources.js
  *
- * OneClaw Electron 应用资源打包脚本
+ * SeekClaw Electron 应用资源打包脚本
  * 负责下载 Node.js 运行时、安装 openclaw 生产依赖、生成统一入口
  *
  * 用法: node scripts/package-resources.js [--platform darwin|win32] [--arch arm64|x64] [--locale en|cn]
@@ -56,7 +56,7 @@ function parseArgs() {
     platform: process.platform,
     arch: process.platform === "win32" ? "x64" : "arm64",
     locale: "en",
-    asar: process.env.ONECLAW_GATEWAY_ASAR === "1",
+    asar: process.env.SEEKCLAW_GATEWAY_ASAR === "1",
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -476,11 +476,11 @@ function readEnvRetryDelays(name, fallback) {
 }
 
 function buildAnalyticsConfig() {
-  const captureURL = readEnvText("ONECLAW_ANALYTICS_CAPTURE_URL");
-  const captureFallbackURL = readEnvText("ONECLAW_ANALYTICS_CAPTURE_FALLBACK_URL") || captureURL;
-  const apiKey = readEnvText("ONECLAW_ANALYTICS_API_KEY");
-  const requestTimeoutMs = readEnvPositiveInt("ONECLAW_ANALYTICS_REQUEST_TIMEOUT_MS", 8000);
-  const retryDelaysMs = readEnvRetryDelays("ONECLAW_ANALYTICS_RETRY_DELAYS_MS", [0, 500, 1500]);
+  const captureURL = readEnvText("SEEKCLAW_ANALYTICS_CAPTURE_URL");
+  const captureFallbackURL = readEnvText("SEEKCLAW_ANALYTICS_CAPTURE_FALLBACK_URL") || captureURL;
+  const apiKey = readEnvText("SEEKCLAW_ANALYTICS_API_KEY");
+  const requestTimeoutMs = readEnvPositiveInt("SEEKCLAW_ANALYTICS_REQUEST_TIMEOUT_MS", 8000);
+  const retryDelaysMs = readEnvRetryDelays("SEEKCLAW_ANALYTICS_RETRY_DELAYS_MS", [0, 500, 1500]);
   const enabled = captureURL.length > 0 && apiKey.length > 0;
 
   if (!enabled) {
@@ -506,7 +506,7 @@ function buildAnalyticsConfig() {
 
 function writeBuildConfig(configPath) {
   const analytics = buildAnalyticsConfig();
-  const clawhubRegistry = readEnvText("ONECLAW_CLAWHUB_REGISTRY");
+  const clawhubRegistry = readEnvText("SEEKCLAW_CLAWHUB_REGISTRY");
   const config = { analytics, clawhubRegistry };
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   log(`已生成 build-config.json（analytics.enabled=${analytics.enabled ? "true" : "false"}, clawhubRegistry=${clawhubRegistry || "(空)"}）`);
@@ -549,9 +549,9 @@ function getPackageSource() {
 // 确定 QQ Bot 插件安装来源：查询 npm latest stable
 function getQqbotPackageSource() {
   // 显式覆盖（调试 / 私有 tgz / 本地 file: 逃生舱）
-  const explicitSource = readEnvText("ONECLAW_QQBOT_PACKAGE_SOURCE");
+  const explicitSource = readEnvText("SEEKCLAW_QQBOT_PACKAGE_SOURCE");
   if (explicitSource) {
-    log(`使用 ONECLAW_QQBOT_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
+    log(`使用 SEEKCLAW_QQBOT_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
     return {
       source: explicitSource,
       stampSource: `explicit:${QQBOT_PACKAGE_NAME}@${explicitSource}`,
@@ -567,7 +567,7 @@ function getQqbotPackageSource() {
   });
 
   if (!latestVersion) {
-    die(`无法从 npm 获取 ${QQBOT_PACKAGE_NAME} 最新版本（检查网络或设置 ONECLAW_QQBOT_PACKAGE_SOURCE 手动指定）`);
+    die(`无法从 npm 获取 ${QQBOT_PACKAGE_NAME} 最新版本（检查网络或设置 SEEKCLAW_QQBOT_PACKAGE_SOURCE 手动指定）`);
   }
 
   log(`使用 ${QQBOT_PACKAGE_NAME}@${latestVersion}（来源: npm latest）`);
@@ -580,9 +580,9 @@ function getQqbotPackageSource() {
 // 确定钉钉连接器安装来源：查询 npm latest stable
 function getDingtalkConnectorPackageSource() {
   // 显式覆盖（调试 / 私有 tgz / 本地 file: 逃生舱）
-  const explicitSource = readEnvText("ONECLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE");
+  const explicitSource = readEnvText("SEEKCLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE");
   if (explicitSource) {
-    log(`使用 ONECLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
+    log(`使用 SEEKCLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
     return {
       source: explicitSource,
       stampSource: `explicit:${DINGTALK_CONNECTOR_PACKAGE_NAME}@${explicitSource}`,
@@ -598,7 +598,7 @@ function getDingtalkConnectorPackageSource() {
   });
 
   if (!latestVersion) {
-    die(`无法从 npm 获取 ${DINGTALK_CONNECTOR_PACKAGE_NAME} 最新版本（检查网络或设置 ONECLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE 手动指定）`);
+    die(`无法从 npm 获取 ${DINGTALK_CONNECTOR_PACKAGE_NAME} 最新版本（检查网络或设置 SEEKCLAW_DINGTALK_CONNECTOR_PACKAGE_SOURCE 手动指定）`);
   }
 
   log(`使用 ${DINGTALK_CONNECTOR_PACKAGE_NAME}@${latestVersion}（来源: npm latest）`);
@@ -611,9 +611,9 @@ function getDingtalkConnectorPackageSource() {
 // 确定企业微信插件安装来源：查询 npm latest stable
 function getWecomPluginPackageSource() {
   // 显式覆盖（调试 / 私有 tgz / 本地 file: 逃生舱）
-  const explicitSource = readEnvText("ONECLAW_WECOM_PLUGIN_PACKAGE_SOURCE");
+  const explicitSource = readEnvText("SEEKCLAW_WECOM_PLUGIN_PACKAGE_SOURCE");
   if (explicitSource) {
-    log(`使用 ONECLAW_WECOM_PLUGIN_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
+    log(`使用 SEEKCLAW_WECOM_PLUGIN_PACKAGE_SOURCE 指定来源: ${explicitSource}`);
     return {
       source: explicitSource,
       stampSource: `explicit:${WECOM_PLUGIN_PACKAGE_NAME}@${explicitSource}`,
@@ -629,7 +629,7 @@ function getWecomPluginPackageSource() {
   });
 
   if (!latestVersion) {
-    die(`无法从 npm 获取 ${WECOM_PLUGIN_PACKAGE_NAME} 最新版本（检查网络或设置 ONECLAW_WECOM_PLUGIN_PACKAGE_SOURCE 手动指定）`);
+    die(`无法从 npm 获取 ${WECOM_PLUGIN_PACKAGE_NAME} 最新版本（检查网络或设置 SEEKCLAW_WECOM_PLUGIN_PACKAGE_SOURCE 手动指定）`);
   }
 
   log(`使用 ${WECOM_PLUGIN_PACKAGE_NAME}@${latestVersion}（来源: npm latest）`);
@@ -711,16 +711,16 @@ function pruneDarwinUniversalNativePackages(nmDir, platform) {
   }
 }
 
-// 是否保留 node-llama-cpp（默认移除；设置 ONECLAW_KEEP_LLAMA=true/1 可保留）
+// 是否保留 node-llama-cpp（默认移除；设置 SEEKCLAW_KEEP_LLAMA=true/1 可保留）
 function shouldKeepLlamaPackages() {
-  const raw = readEnvText("ONECLAW_KEEP_LLAMA").toLowerCase();
+  const raw = readEnvText("SEEKCLAW_KEEP_LLAMA").toLowerCase();
   return raw === "1" || raw === "true" || raw === "yes";
 }
 
 // 定点裁剪 llama 相关依赖，避免 --omit=optional 误伤其它可选功能
 function pruneLlamaPackages(nmDir) {
   if (shouldKeepLlamaPackages()) {
-    log("已保留 llama 依赖（ONECLAW_KEEP_LLAMA 已启用）");
+    log("已保留 llama 依赖（SEEKCLAW_KEEP_LLAMA 已启用）");
     return;
   }
 
@@ -1060,9 +1060,9 @@ function injectWindowsHideAll(source) {
 const BUNDLED_PLUGINS = [
   {
     id: "kimi-claw",
-    localEnv: "ONECLAW_KIMI_CLAW_TGZ_PATH",
-    urlEnv: "ONECLAW_KIMI_CLAW_TGZ_URL",
-    refreshEnv: "ONECLAW_KIMI_CLAW_REFRESH",
+    localEnv: "SEEKCLAW_KIMI_CLAW_TGZ_PATH",
+    urlEnv: "SEEKCLAW_KIMI_CLAW_TGZ_URL",
+    refreshEnv: "SEEKCLAW_KIMI_CLAW_REFRESH",
     defaultURL: KIMI_CLAW_DEFAULT_TGZ_URL,
     cacheFile: KIMI_CLAW_CACHE_FILE,
     // 校验解压产物必须包含的文件
@@ -1071,9 +1071,9 @@ const BUNDLED_PLUGINS = [
   },
   {
     id: "kimi-search",
-    localEnv: "ONECLAW_KIMI_SEARCH_TGZ_PATH",
-    urlEnv: "ONECLAW_KIMI_SEARCH_TGZ_URL",
-    refreshEnv: "ONECLAW_KIMI_SEARCH_REFRESH",
+    localEnv: "SEEKCLAW_KIMI_SEARCH_TGZ_PATH",
+    urlEnv: "SEEKCLAW_KIMI_SEARCH_TGZ_URL",
+    refreshEnv: "SEEKCLAW_KIMI_SEARCH_REFRESH",
     defaultURL: KIMI_SEARCH_DEFAULT_TGZ_URL,
     cacheFile: KIMI_SEARCH_CACHE_FILE,
     requiredFiles: ["package.json", "openclaw.plugin.json"],
@@ -1098,7 +1098,7 @@ const BUNDLED_PLUGINS = [
   },
 ];
 
-// openclaw/skills 只保留 OneClaw 产品需要的内置技能，上游新增 skill 不会自动打入。
+// openclaw/skills 只保留 SeekClaw 产品需要的内置技能，上游新增 skill 不会自动打入。
 const OPENCLAW_SKILLS_ALLOWLIST = new Set([
   "canvas",
   "clawhub",
@@ -1124,7 +1124,7 @@ const OPENCLAW_SKILLS_DARWIN_ONLY = new Set([
   "peekaboo",
 ]);
 
-// openclaw/extensions 只保留 OneClaw 当前产品面和运行时基础插件。
+// openclaw/extensions 只保留 SeekClaw 当前产品面和运行时基础插件。
 const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
   "shared",
   "memory-core",
@@ -1248,7 +1248,7 @@ async function bundleNpmPackagePlugin(plugin, gatewayDir, targetId, opts) {
   const sourceInfo = plugin.getSource();
 
   // 增量检测：版本戳匹配则跳过
-  const stampPath = path.join(pluginDir, `.oneclaw-${plugin.id}-stamp.json`);
+  const stampPath = path.join(pluginDir, `.seekclaw-${plugin.id}-stamp.json`);
   if (fs.existsSync(stampPath) && fs.existsSync(pluginDir)) {
     try {
       const stamp = JSON.parse(fs.readFileSync(stampPath, "utf-8"));
@@ -1345,7 +1345,7 @@ async function bundleNpmPackagePlugin(plugin, gatewayDir, targetId, opts) {
 
   // 写入版本戳
   fs.writeFileSync(
-    path.join(pluginDir, `.oneclaw-${plugin.id}-stamp.json`),
+    path.join(pluginDir, `.seekclaw-${plugin.id}-stamp.json`),
     JSON.stringify({ source: sourceInfo.stampSource, bundledAt: new Date().toISOString() }, null, 2)
   );
   log(`已注入 ${plugin.id} 插件到 ${path.relative(ROOT, pluginDir)}`);
@@ -1529,7 +1529,7 @@ async function bundlePlugin(plugin, gatewayDir, targetId, opts) {
 
   const stamp = { source: source.sourceLabel, bundledAt: new Date().toISOString() };
   fs.writeFileSync(
-    path.join(pluginDir, `.oneclaw-${plugin.id}-stamp.json`),
+    path.join(pluginDir, `.seekclaw-${plugin.id}-stamp.json`),
     JSON.stringify(stamp, null, 2)
   );
   log(`已注入 ${plugin.id} 插件到 ${path.relative(ROOT, pluginDir)}`);
@@ -1687,7 +1687,7 @@ function pruneNodeModules(nmDir, platform) {
     walkDocs(openclawDocsDir);
   }
 
-  // openclaw/extensions 不再整目录豁免，只保留 OneClaw 需要的插件。
+  // openclaw/extensions 不再整目录豁免，只保留 SeekClaw 需要的插件。
   function pruneOpenclawExtensions() {
     if (!fs.existsSync(openclawExtensionsDir)) return;
 
@@ -2058,7 +2058,7 @@ async function main() {
 
   console.log();
 
-  // Step 6: Gateway ASAR 打包（--asar 或 ONECLAW_GATEWAY_ASAR=1 时启用）
+  // Step 6: Gateway ASAR 打包（--asar 或 SEEKCLAW_GATEWAY_ASAR=1 时启用）
   if (opts.asar) {
     log("Step 6: Gateway ASAR 打包");
     await packGatewayAsar(targetPaths.gatewayDir, targetPaths.targetBase, opts.platform, opts.arch);

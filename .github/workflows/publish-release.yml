@@ -1,6 +1,6 @@
-# 发布工作流：上传 latest yml + 刷新 CDN
+# 发布工作流：刷新 Cloudflare 缓存
 # 触发：GitHub Release 从 Draft 发布为 Published
-# 二进制产物已在 build-release 阶段预上传到 OSS，此处只推送更新清单
+# 此处不上传文件到外部存储，仅触发缓存清理，因为文件通过网关代理透明通过。
 
 name: Publish Release
 
@@ -9,50 +9,23 @@ on:
     types: [published]
 
 env:
-  CDN_DOMAIN: oneclaw.cn
+  CDN_DOMAIN: dl.zknav.cn
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      # 从 Release 下载 latest yml 文件
-      - name: 下载 Release 产物
+      # 刷新 Cloudflare CDN 缓存
+      - name: 刷新 Cloudflare 缓存
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          mkdir -p out/release
-          gh release download "${{ github.event.release.tag_name }}" \
-            --repo "${{ github.repository }}" \
-            --pattern "*.yml" \
-            --dir out/release
-
-      # 上传 latest yml 到 OSS（触发 auto-updater 发现新版本）
-      - name: 安装 ossutil
-        run: curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
-
-      - name: 上传 latest yml 到 OSS
-        env:
-          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
-          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
-        run: |
-          ossutil config -e oss-cn-beijing.aliyuncs.com -i "$ALIYUN_ACCESS_KEY_ID" -k "$ALIYUN_ACCESS_KEY_SECRET"
-          ossutil cp -r out/release/ oss://oneclaw/releases/ --force --include "*.yml"
-          echo "latest yml 上传完成"
-
-      # 刷新 CDN 缓存
-      - name: 刷新 CDN 缓存
-        env:
-          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
-          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
-        run: |
-          curl -fsSL https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz | tar xz
-          chmod +x aliyun
-          ./aliyun configure set \
-            --access-key-id "$ALIYUN_ACCESS_KEY_ID" \
-            --access-key-secret "$ALIYUN_ACCESS_KEY_SECRET" \
-            --region cn-beijing
-          ./aliyun cdn RefreshObjectCaches \
-            --ObjectType File \
-            --ObjectPath "https://${{ env.CDN_DOMAIN }}/releases/latest-mac.yml
-          https://${{ env.CDN_DOMAIN }}/releases/latest.yml"
-          echo "CDN 缓存刷新已提交"
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"files": [
+              "https://${{ env.CDN_DOMAIN }}/releases/latest-mac.yml",
+              "https://${{ env.CDN_DOMAIN }}/releases/latest.yml"
+            ]}'
+          echo "Cloudflare 缓存刷新已提交"
