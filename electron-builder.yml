@@ -55,7 +55,7 @@ dmg:
       path: /Applications
     - x: 270
       y: 80
-      path: assets/已损坏修复.command
+      path: assets/修复已损坏-右键打开.command
 
 # --- Windows ---
 win:
