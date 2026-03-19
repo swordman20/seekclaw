@@ -1029,7 +1029,7 @@
     els.docsLink.addEventListener("click", (e) => {
       e.preventDefault();
       if (window.seekclaw?.openExternal) {
-        window.seekclaw.openExternal("https://seekclaw.cn/docs");
+        window.seekclaw.openExternal("https://docs.sc.zknav.cn");
       }
     });
 

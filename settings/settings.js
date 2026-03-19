@@ -1421,7 +1421,7 @@
         if (refreshResult.success && refreshResult.data && refreshResult.data.savedProviders) {
           savedProviders = refreshResult.data.savedProviders;
         }
-      } catch {}
+      } catch { }
     } catch (err) {
       showMsg(t("error.connection") + (err.message || ""), "error");
       setOAuthLoading(false);
@@ -2093,15 +2093,15 @@
     try {
       var result = getCurrentAccessPlatform() === "wecom"
         ? await window.seekclaw.settingsApproveWecomPairing({
-            code: trimmed,
-            id: String(id || "").trim(),
-            name: String(name || "").trim(),
-          })
+          code: trimmed,
+          id: String(id || "").trim(),
+          name: String(name || "").trim(),
+        })
         : await window.seekclaw.settingsApproveFeishuPairing({
-        code: trimmed,
-        id: String(id || "").trim(),
-        name: String(name || "").trim(),
-      });
+          code: trimmed,
+          id: String(id || "").trim(),
+          name: String(name || "").trim(),
+        });
       if (!result.success) {
         showCurrentAccessMsg(result.message || t("error.verifyFailed"), "error");
       } else {
@@ -2134,15 +2134,15 @@
     try {
       var result = getCurrentAccessPlatform() === "wecom"
         ? await window.seekclaw.settingsRejectWecomPairing({
-            code: trimmed,
-            id: String(id || "").trim(),
-            name: String(name || "").trim(),
-          })
+          code: trimmed,
+          id: String(id || "").trim(),
+          name: String(name || "").trim(),
+        })
         : await window.seekclaw.settingsRejectFeishuPairing({
-        code: trimmed,
-        id: String(id || "").trim(),
-        name: String(name || "").trim(),
-      });
+          code: trimmed,
+          id: String(id || "").trim(),
+          name: String(name || "").trim(),
+        });
       if (!result.success) {
         showCurrentAccessMsg(result.message || t("error.verifyFailed"), "error");
       } else {
@@ -2176,13 +2176,13 @@
     try {
       var result = getCurrentAccessPlatform() === "wecom"
         ? await window.seekclaw.settingsRemoveWecomApproved({
-            kind: entryKind,
-            id: entryId,
-          })
+          kind: entryKind,
+          id: entryId,
+        })
         : await window.seekclaw.settingsRemoveFeishuApproved({
-        kind: entryKind,
-        id: entryId,
-      });
+          kind: entryKind,
+          id: entryId,
+        });
       if (!result.success) {
         showCurrentAccessMsg(result.message || t("error.removeApprovedFailed"), "error");
       } else {
@@ -4099,7 +4099,7 @@
   function bindEvents() {
     var btnBackToChat = document.getElementById("btnBackToChat");
     if (btnBackToChat) {
-      btnBackToChat.addEventListener("click", function() {
+      btnBackToChat.addEventListener("click", function () {
         if (window.parent && window.parent !== window) {
           window.parent.postMessage({ source: 'seekclaw-settings-embed', type: 'navigate-back' }, '*');
         } else if (window.seekclaw && window.seekclaw.onNavigate) {
@@ -4224,7 +4224,7 @@
     els.chDocsLink.addEventListener("click", function (e) {
       e.preventDefault();
       if (window.seekclaw && window.seekclaw.openExternal) {
-        window.seekclaw.openExternal("https://seekclaw.cn/docs/tutorials/feishu-bot.html");
+        window.seekclaw.openExternal("https://docs.sc.zknav.cn/tutorials/feishu-bot.html");
       }
     });
     els.chConsoleLink.addEventListener("click", function (e) {
@@ -4563,7 +4563,7 @@
     try {
       var state = await window.seekclaw.getUpdateState();
       renderUpdateStatus(state);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 根据更新状态渲染按钮和提示

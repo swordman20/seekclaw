@@ -33,7 +33,7 @@ mac:
 # 自动更新：指向 Cloudflare R2 加速域名
 publish:
   provider: generic
-  url: https://dl.zknav.cn/releases/
+  url: https://download.sc.zknav.cn/releases/
 
 dmg:
   sign: false

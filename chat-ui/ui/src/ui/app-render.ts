@@ -457,8 +457,8 @@ function renderInstalledSkillsView(state: AppViewState) {
   const filter = ((state as any).skillsFilter ?? "").trim().toLowerCase();
   const filtered = filter
     ? allSkills.filter((s: SkillStatusEntry) =>
-        [s.name, s.description, s.source].join(" ").toLowerCase().includes(filter),
-      )
+      [s.name, s.description, s.source].join(" ").toLowerCase().includes(filter),
+    )
     : allSkills;
   const groups = groupLocalSkills(filtered);
   const busy = state.skillsBusyKey;
@@ -482,17 +482,17 @@ function renderInstalledSkillsView(state: AppViewState) {
         </summary>
         <div class="skill-store__list">
           ${group.skills.map((skill: SkillStatusEntry) => {
-            const key = skill.skillKey ?? "";
-            const isBusy = busy === key;
-            const msg = messages[key] ?? null;
-            const letter = (skill.emoji || (skill.name ?? "?").charAt(0)).toUpperCase();
-            const missing = [
-              ...(skill.missing?.bins ?? []).map((b: string) => `bin:${b}`),
-              ...(skill.missing?.env ?? []).map((e: string) => `env:${e}`),
-              ...(skill.missing?.config ?? []).map((c: string) => `config:${c}`),
-              ...(skill.missing?.os ?? []).map((o: string) => `os:${o}`),
-            ];
-            return html`
+        const key = skill.skillKey ?? "";
+        const isBusy = busy === key;
+        const msg = messages[key] ?? null;
+        const letter = (skill.emoji || (skill.name ?? "?").charAt(0)).toUpperCase();
+        const missing = [
+          ...(skill.missing?.bins ?? []).map((b: string) => `bin:${b}`),
+          ...(skill.missing?.env ?? []).map((e: string) => `env:${e}`),
+          ...(skill.missing?.config ?? []).map((c: string) => `config:${c}`),
+          ...(skill.missing?.os ?? []).map((o: string) => `os:${o}`),
+        ];
+        return html`
               <div class="skill-store__card">
                 <div class="skill-store__card-header">
                   <div class="skill-store__card-icon" style="background: ${skillColor(key)}; color: #fff;">
@@ -506,8 +506,8 @@ function renderInstalledSkillsView(state: AppViewState) {
                         ${skill.eligible ? t("skills.eligible") : t("skills.blocked")}
                       </span>
                       ${skill.disabled
-                        ? html`<span class="skills-badge skills-badge--warn">${t("skills.disabled")}</span>`
-                        : nothing}
+            ? html`<span class="skills-badge skills-badge--warn">${t("skills.disabled")}</span>`
+            : nothing}
                     </div>
                   </div>
                   <div class="skill-store__card-action">
@@ -518,25 +518,25 @@ function renderInstalledSkillsView(state: AppViewState) {
                       @click=${() => void updateSkillEnabled(state as unknown as SkillsState, key, !!skill.disabled)}
                     >${skill.disabled ? t("skills.enable") : t("skills.disable")}</button>
                     ${skill.source !== "openclaw-bundled"
-                      ? html`
+            ? html`
                         <button
                           class="skill-store__btn skill-store__btn--installed"
                           type="button"
                           ?disabled=${isBusy}
                           @click=${() => void uninstallLocalSkill(state, skill.name ?? key)}
                         >${t("skillStore.uninstall")}</button>`
-                      : nothing}
+            : nothing}
                   </div>
                 </div>
                 <div class="skill-store__card-desc">${clamp(skill.description as string, 160)}</div>
                 ${missing.length > 0
-                  ? html`<div class="skills-missing">${t("skills.missing")}: ${missing.join(", ")}</div>`
-                  : nothing}
+            ? html`<div class="skills-missing">${t("skills.missing")}: ${missing.join(", ")}</div>`
+            : nothing}
                 ${msg
-                  ? html`<div class="skills-msg ${msg.kind === "error" ? "skills-msg--error" : "skills-msg--ok"}">${msg.message}</div>`
-                  : nothing}
+            ? html`<div class="skills-msg ${msg.kind === "error" ? "skills-msg--error" : "skills-msg--ok"}">${msg.message}</div>`
+            : nothing}
                 ${skill.primaryEnv
-                  ? html`
+            ? html`
                     <div class="skills-apikey-row">
                       <input
                         class="skill-store__search-input"
@@ -553,10 +553,10 @@ function renderInstalledSkillsView(state: AppViewState) {
                       >${t("skills.saveKey")}</button>
                     </div>
                   `
-                  : nothing}
+            : nothing}
               </div>
             `;
-          })}
+      })}
         </div>
       </details>
     `)}
@@ -682,10 +682,10 @@ function ensureSettingsEmbedBridge(state: AppViewState) {
     }
     const data = event.data as
       | {
-          source?: string;
-          type?: string;
-          payload?: { theme?: "system" | "light" | "dark"; showThinking?: boolean };
-        }
+        source?: string;
+        type?: string;
+        payload?: { theme?: "system" | "light" | "dark"; showThinking?: boolean };
+      }
       | undefined;
     if (!data || data.source !== "seekclaw-settings-embed") {
       return;
@@ -823,68 +823,66 @@ export function renderApp(state: AppViewState) {
       class="seekclaw-shell ${navigator.platform?.includes("Mac") ? "is-mac" : ""} ${chatFocus ? "seekclaw-shell--focus" : ""} ${sidebarCollapsed ? "seekclaw-shell--sidebar-collapsed" : ""} ${settingsActive ? "seekclaw-shell--fullpage" : ""}"
     >
       ${chatFocus || sidebarCollapsed
-        ? nothing
-        : renderSidebar({
-            connected: state.connected,
-            currentSessionKey,
-            sessionOptions,
-            settingsActive,
-            skillsActive,
-            updateStatus: updateBannerState.status,
-            updateVersion: updateBannerState.version,
-            updatePercent: updateBannerState.percent,
-            updateShowBadge: updateBannerState.showBadge,
-            refreshDisabled: state.chatLoading,
-            onSelectSession: (nextSessionKey: string) => handleSessionChange(state, nextSessionKey),
-            onNewChat: () => createNewSession(state),
-            onRenameSession: (key: string, newLabel: string) => {
-              void patchSessionFromSidebar(state, key, newLabel);
-            },
-            onDeleteSession: (key: string) => {
-              void deleteSessionFromSidebar(state, key);
-            },
-            onRefresh: () => void handleRefreshChat(state),
-            onToggleSidebar: () => {
-              state.applySettings({
-                ...state.settings,
-                navCollapsed: !state.settings.navCollapsed,
-              });
-            },
-            onOpenSettings: () => openSettingsView(
-              state,
-              state.pairingState.pendingCount > 0 ? "channels" : null,
-            ),
-            onOpenSkillStore: () => openSkillsView(state),
-            onOpenWebUI: () => void handleOpenWebUI(state),
-            onOpenDocs: () => {
-              if (window.seekclaw?.openExternal) {
-                window.seekclaw.openExternal("https://seekclaw.cn/docs");
-              } else {
-                window.open("https://seekclaw.cn/docs", "_blank");
-              }
-            },
-            onApplyUpdate: () => void handleApplyUpdate(state),
-          })}
+      ? nothing
+      : renderSidebar({
+        connected: state.connected,
+        currentSessionKey,
+        sessionOptions,
+        settingsActive,
+        skillsActive,
+        updateStatus: updateBannerState.status,
+        updateVersion: updateBannerState.version,
+        updatePercent: updateBannerState.percent,
+        updateShowBadge: updateBannerState.showBadge,
+        refreshDisabled: state.chatLoading,
+        onSelectSession: (nextSessionKey: string) => handleSessionChange(state, nextSessionKey),
+        onNewChat: () => createNewSession(state),
+        onRenameSession: (key: string, newLabel: string) => {
+          void patchSessionFromSidebar(state, key, newLabel);
+        },
+        onDeleteSession: (key: string) => {
+          void deleteSessionFromSidebar(state, key);
+        },
+        onRefresh: () => void handleRefreshChat(state),
+        onToggleSidebar: () => {
+          state.applySettings({
+            ...state.settings,
+            navCollapsed: !state.settings.navCollapsed,
+          });
+        },
+        onOpenSettings: () => openSettingsView(
+          state,
+          state.pairingState.pendingCount > 0 ? "channels" : null,
+        ),
+        onOpenSkillStore: () => openSkillsView(state),
+        onOpenWebUI: () => void handleOpenWebUI(state),
+        onOpenDocs: () => {
+          if (window.seekclaw?.openExternal) {
+            window.seekclaw.openExternal("https://docs.sc.zknav.cn");
+          } else {
+            window.open("https://docs.sc.zknav.cn", "_blank");
+          }
+        },
+        onApplyUpdate: () => void handleApplyUpdate(state),
+      })}
 
       <div class="seekclaw-main">
-        ${
-          settingsActive
-            ? html`<div style="position: absolute; top: 0; left: 0; right: 0; height: 44px; -webkit-app-region: drag;"></div>`
-            : html`
+        ${settingsActive
+      ? html`<div style="position: absolute; top: 0; left: 0; right: 0; height: 44px; -webkit-app-region: drag;"></div>`
+      : html`
                 <div class="seekclaw-titlebar">
-                  ${
-                    sidebarCollapsed && !chatFocus
-                      ? html`
+                  ${sidebarCollapsed && !chatFocus
+          ? html`
                           <div class="seekclaw-floating-actions">
                             <button
                               class="seekclaw-floating-btn"
                               type="button"
                               @click=${() => {
-                                state.applySettings({
-                                  ...state.settings,
-                                  navCollapsed: false,
-                                });
-                              }}
+              state.applySettings({
+                ...state.settings,
+                navCollapsed: false,
+              });
+            }}
                               data-tooltip=${t("sidebar.expand")}
                               data-tooltip-pos="bottom"
                               aria-label=${t("sidebar.expand")}
@@ -903,26 +901,26 @@ export function renderApp(state: AppViewState) {
                             </button>
                           </div>
                         `
-                      : nothing
-                  }
+          : nothing
+        }
                 </div>
               `
-        }
+    }
 
         <main class="seekclaw-content">
           ${renderPairingNotice(state)}
           ${settingsActive
-            ? renderSeekClawSettingsPage(state)
-            : skillsActive
-              ? html`
+      ? renderSeekClawSettingsPage(state)
+      : skillsActive
+        ? html`
                   <div class="skills-scroll" @scroll=${(e: Event) => {
-                    if (skillsSubTab !== "store") return;
-                    if (skillStoreState.loading || !skillStoreState.nextCursor) return;
-                    const el = e.target as HTMLElement;
-                    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
-                      void loadSkillStoreData(state, true);
-                    }
-                  }}>
+            if (skillsSubTab !== "store") return;
+            if (skillStoreState.loading || !skillStoreState.nextCursor) return;
+            const el = e.target as HTMLElement;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+              void loadSkillStoreData(state, true);
+            }
+          }}>
                     <section class="skill-store">
                       <div class="skill-store__header">
                         <h2 class="skill-store__title">${t("skillStore.title")}</h2>
@@ -934,25 +932,25 @@ export function renderApp(state: AppViewState) {
                           class="skills-tab-btn ${skillsSubTab === "installed" ? "active" : ""}"
                           type="button"
                           @click=${() => {
-                            skillsSubTab = "installed";
-                            void loadSkills(state as unknown as SkillsState);
-                            state.requestUpdate();
-                          }}
+            skillsSubTab = "installed";
+            void loadSkills(state as unknown as SkillsState);
+            state.requestUpdate();
+          }}
                         >${t("skills.tabInstalled")}</button>
                         <button
                           class="skills-tab-btn ${skillsSubTab === "store" ? "active" : ""}"
                           type="button"
                           @click=${() => {
-                            skillsSubTab = "store";
-                            if (!skillStoreDataLoaded) {
-                              void loadSkillStoreData(state);
-                            }
-                            state.requestUpdate();
-                          }}
+            skillsSubTab = "store";
+            if (!skillStoreDataLoaded) {
+              void loadSkillStoreData(state);
+            }
+            state.requestUpdate();
+          }}
                         >${t("skills.tabStore")}</button>
                         <div class="skills-tab-bar__actions">
                           ${skillsSubTab === "installed"
-                            ? html`
+            ? html`
                                 <span class="skills-count">${t("skills.shown").replace("{n}", String((state.skillsReport?.skills ?? []).length))}</span>
                                 <button
                                   class="skill-store__sort-btn"
@@ -961,48 +959,48 @@ export function renderApp(state: AppViewState) {
                                   @click=${() => void loadSkills(state as unknown as SkillsState)}
                                 >${state.skillsLoading ? t("skills.refreshing") : t("skills.refresh")}</button>
                               `
-                            : html`
+            : html`
                                 ${(["trending", "downloads", "updated"] as const).map((key) => html`
                                   <button
                                     class="skill-store__sort-btn ${storeMode === key ? "active" : ""}"
                                     type="button"
                                     @click=${() => {
-                                      storeMode = key;
-                                      skillStoreState.sort = key;
-                                      skillStoreState.skills = [];
-                                      skillStoreState.nextCursor = null;
-                                      skillStoreState.searchQuery = "";
-                                      skillStoreState.error = null;
-                                      skillStoreDataLoaded = false;
-                                      state.requestUpdate();
-                                      void loadSkillStoreData(state);
-                                    }}
+                storeMode = key;
+                skillStoreState.sort = key;
+                skillStoreState.skills = [];
+                skillStoreState.nextCursor = null;
+                skillStoreState.searchQuery = "";
+                skillStoreState.error = null;
+                skillStoreDataLoaded = false;
+                state.requestUpdate();
+                void loadSkillStoreData(state);
+              }}
                                   >${t(`skillStore.sort${key.charAt(0).toUpperCase() + key.slice(1)}`)}</button>
                                 `)}
                                 <button
                                   class="skill-store__sort-btn ${storeMode === "search" ? "active" : ""}"
                                   type="button"
                                   @click=${() => {
-                                    storeMode = "search";
-                                    skillStoreState.skills = [];
-                                    skillStoreState.nextCursor = null;
-                                    skillStoreState.searchQuery = "";
-                                    skillStoreState.error = null;
-                                    state.requestUpdate();
-                                    requestAnimationFrame(() => {
-                                      (state.renderRoot?.querySelector(".skill-store__search-input") as HTMLInputElement)?.focus();
-                                    });
-                                  }}
+                storeMode = "search";
+                skillStoreState.skills = [];
+                skillStoreState.nextCursor = null;
+                skillStoreState.searchQuery = "";
+                skillStoreState.error = null;
+                state.requestUpdate();
+                requestAnimationFrame(() => {
+                  (state.renderRoot?.querySelector(".skill-store__search-input") as HTMLInputElement)?.focus();
+                });
+              }}
                                   data-tooltip="${t("skillStore.search")}"
                                 ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
                               `
-                          }
+          }
                         </div>
                       </div>
 
                       <!-- 搜索框：已安装 tab 始终显示，商店 tab 仅搜索模式显示 -->
                       ${skillsSubTab === "installed" || storeMode === "search"
-                        ? html`
+            ? html`
                           <div class="skill-store__toolbar">
                             <div class="skill-store__search">
                               <input
@@ -1011,89 +1009,89 @@ export function renderApp(state: AppViewState) {
                                 placeholder=${t(skillsSubTab === "installed" ? "skills.search" : "skillStore.search")}
                                 .value=${skillsSubTab === "installed" ? ((state as any).skillsFilter ?? "") : skillStoreState.searchQuery}
                                 @input=${(e: Event) => {
-                                  const val = (e.target as HTMLInputElement).value;
-                                  if (skillsSubTab === "installed") {
-                                    (state as any).skillsFilter = val;
-                                    state.requestUpdate();
-                                  } else {
-                                    skillStoreState.searchQuery = val;
-                                    state.requestUpdate();
-                                  }
-                                }}
+                const val = (e.target as HTMLInputElement).value;
+                if (skillsSubTab === "installed") {
+                  (state as any).skillsFilter = val;
+                  state.requestUpdate();
+                } else {
+                  skillStoreState.searchQuery = val;
+                  state.requestUpdate();
+                }
+              }}
                                 @keydown=${(e: KeyboardEvent) => {
-                                  if (e.key === "Enter" && skillsSubTab === "store") {
-                                    void searchSkillStore(state);
-                                  }
-                                }}
+                if (e.key === "Enter" && skillsSubTab === "store") {
+                  void searchSkillStore(state);
+                }
+              }}
                               />
                             </div>
                           </div>
                         `
-                        : nothing
-                      }
+            : nothing
+          }
 
                       <!-- 标签页内容 -->
                       ${skillsSubTab === "installed"
-                        ? renderInstalledSkillsView(state)
-                        : renderSkillStoreView(skillStoreState, {
-                            onInstall: (slug) => void installSkillFromStore(state, slug),
-                            onUninstall: (slug) => void uninstallSkillFromStore(state, slug),
-                          })
-                      }
+            ? renderInstalledSkillsView(state)
+            : renderSkillStoreView(skillStoreState, {
+              onInstall: (slug) => void installSkillFromStore(state, slug),
+              onUninstall: (slug) => void uninstallSkillFromStore(state, slug),
+            })
+          }
                     </section>
                   </div>
                 `
-              : html`
+        : html`
                 ${renderChat({
-                  sessionKey: state.sessionKey,
-                  onSessionKeyChange: (next) => applySessionKey(state, next),
-                  thinkingLevel: state.chatThinkingLevel,
-                  showThinking,
-                  loading: state.chatLoading,
-                  sending: state.chatSending,
-                  compactionStatus: state.compactionStatus,
-                  assistantAvatarUrl: chatAvatarUrl,
-                  messages: state.chatMessages,
-                  toolMessages: state.chatToolMessages,
-                  stream: state.chatStream,
-                  streamStartedAt: (state as any).chatStreamStartedAt,
-                  draft: state.chatMessage,
-                  queue: state.chatQueue,
-                  connected: state.connected,
-                  canSend: state.connected,
-                  disabledReason: chatDisabledReason,
-                  error: state.lastError,
-                  sessions: state.sessionsResult,
-                  focusMode: false,
-                  onRefresh: () => {
-                    (state as any).resetToolStream();
-                    return Promise.all([loadChatHistory(state as any), refreshChatAvatar(state as any)]);
-                  },
-                  onToggleFocusMode: () => {},
-                  onChatScroll: (event) => state.handleChatScroll(event),
-                  onDraftChange: (next) => (state.chatMessage = next),
-                  configuredModels: state.configuredModels,
-                  currentModel: state.currentModel,
-                  onModelChange: (modelKey) => state.handleModelChange(modelKey),
-                  attachments: state.chatAttachments,
-                  onAttachmentsChange: (next) => (state.chatAttachments = next),
-                  onSend: () => state.handleSendChat(),
-                  canAbort: Boolean(state.chatRunId),
-                  onAbort: () => void state.handleAbortChat(),
-                  onQueueRemove: (id) => state.removeQueuedMessage(id),
-                  onNewSession: () => confirmAndCreateNewSession(state),
-                  showNewMessages: state.chatNewMessagesBelow && !state.chatManualRefreshInFlight,
-                  onScrollToBottom: () => state.scrollToBottom(),
-                  sidebarOpen: state.sidebarOpen,
-                  sidebarContent: state.sidebarContent,
-                  sidebarError: state.sidebarError,
-                  splitRatio: state.splitRatio,
-                  onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
-                  onCloseSidebar: () => state.handleCloseSidebar(),
-                  onSplitRatioChange: (ratio: number) => state.handleSplitRatioChange(ratio),
-                  assistantName: state.assistantName,
-                  assistantAvatar: state.assistantAvatar,
-                })}
+          sessionKey: state.sessionKey,
+          onSessionKeyChange: (next) => applySessionKey(state, next),
+          thinkingLevel: state.chatThinkingLevel,
+          showThinking,
+          loading: state.chatLoading,
+          sending: state.chatSending,
+          compactionStatus: state.compactionStatus,
+          assistantAvatarUrl: chatAvatarUrl,
+          messages: state.chatMessages,
+          toolMessages: state.chatToolMessages,
+          stream: state.chatStream,
+          streamStartedAt: (state as any).chatStreamStartedAt,
+          draft: state.chatMessage,
+          queue: state.chatQueue,
+          connected: state.connected,
+          canSend: state.connected,
+          disabledReason: chatDisabledReason,
+          error: state.lastError,
+          sessions: state.sessionsResult,
+          focusMode: false,
+          onRefresh: () => {
+            (state as any).resetToolStream();
+            return Promise.all([loadChatHistory(state as any), refreshChatAvatar(state as any)]);
+          },
+          onToggleFocusMode: () => { },
+          onChatScroll: (event) => state.handleChatScroll(event),
+          onDraftChange: (next) => (state.chatMessage = next),
+          configuredModels: state.configuredModels,
+          currentModel: state.currentModel,
+          onModelChange: (modelKey) => state.handleModelChange(modelKey),
+          attachments: state.chatAttachments,
+          onAttachmentsChange: (next) => (state.chatAttachments = next),
+          onSend: () => state.handleSendChat(),
+          canAbort: Boolean(state.chatRunId),
+          onAbort: () => void state.handleAbortChat(),
+          onQueueRemove: (id) => state.removeQueuedMessage(id),
+          onNewSession: () => confirmAndCreateNewSession(state),
+          showNewMessages: state.chatNewMessagesBelow && !state.chatManualRefreshInFlight,
+          onScrollToBottom: () => state.scrollToBottom(),
+          sidebarOpen: state.sidebarOpen,
+          sidebarContent: state.sidebarContent,
+          sidebarError: state.sidebarError,
+          splitRatio: state.splitRatio,
+          onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
+          onCloseSidebar: () => state.handleCloseSidebar(),
+          onSplitRatioChange: (ratio: number) => state.handleSplitRatioChange(ratio),
+          assistantName: state.assistantName,
+          assistantAvatar: state.assistantAvatar,
+        })}
               `}
         </main>
       </div>
