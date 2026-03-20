@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/seekclaw/seekclaw/releases/latest"><img src="https://img.shields.io/github/v/release/seekclaw/seekclaw?style=flat-square&color=c0392b" alt="Latest Release" /></a>
-  <a href="https://github.com/seekclaw/seekclaw/releases"><img src="https://img.shields.io/github/downloads/seekclaw/seekclaw/total?style=flat-square&color=c0392b" alt="Downloads" /></a>
-  <a href="https://github.com/seekclaw/seekclaw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/seekclaw/seekclaw?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/swordman20/seekclaw/releases/latest"><img src="https://img.shields.io/github/v/release/swordman20/seekclaw?style=flat-square&color=c0392b" alt="Latest Release" /></a>
+  <a href="https://github.com/swordman20/seekclaw/releases"><img src="https://img.shields.io/github/downloads/swordman20/seekclaw/total?style=flat-square&color=c0392b" alt="Downloads" /></a>
+  <a href="https://github.com/swordman20/seekclaw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/swordman20/seekclaw?style=flat-square" alt="License" /></a>
 </p>
 
 ---
@@ -44,7 +44,7 @@ SeekClaw 把 [OpenClaw](https://github.com/anthropics/claude-code) 打包成一�
 
 ### 📦 下载安装
 
-前往 [Releases 页面](https://github.com/seekclaw/seekclaw/releases/latest) 下载对应平台的安装包：
+前往 [Releases 页面](https://github.com/swordman20/seekclaw/releases/latest) 下载对应平台的安装包：
 
 | 平台 | 架构 | 下载 |
 |---|---|---|
@@ -109,7 +109,7 @@ A: 你可以把 SeekClaw 连接到飞书，让它作为飞书工作区中的聊�
 
 如果 SeekClaw 帮到了你，请给个 ⭐ Star 支持一下！你的每一颗 Star 都是我们持续改进的动力 💪❤️
 
-[![Star History Chart](https://api.star-history.com/svg?repos=seekclaw/seekclaw&type=Date)](https://star-history.com/#seekclaw/seekclaw&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=swordman20/seekclaw&type=Date)](https://star-history.com/#swordman20/seekclaw&Date)
 
 ---
 
@@ -140,7 +140,7 @@ Its goal is simple: **AI that gets things done, not just chats.** 🎯
 
 ### 📦 Download
 
-Head to the [Releases page](https://github.com/seekclaw/seekclaw/releases/latest) and grab the installer for your platform:
+Head to the [Releases page](https://github.com/swordman20/seekclaw/releases/latest) and grab the installer for your platform:
 
 | Platform | Architecture | File |
 |---|---|---|
