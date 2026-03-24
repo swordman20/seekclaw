@@ -156,12 +156,15 @@ export function resolveNpmBin(): string {
  */
 function resolveGatewayRoot(): string {
   const res = resolveResourcesPath();
+  const loosePath = path.join(res, "gateway");
+  if (fs.existsSync(loosePath) && fs.statSync(loosePath).isDirectory()) {
+    return loosePath;
+  }
   const asarPath = path.join(res, "gateway.asar");
-  // 检测 asar 文件存在性：extname 防止把普通目录误判为 asar
   if (path.extname(asarPath) === ".asar" && fs.existsSync(asarPath)) {
     return asarPath;
   }
-  return path.join(res, "gateway");
+  return loosePath;
 }
 
 /** Gateway 入口（优先 openclaw.mjs，旧包回退 gateway-entry.mjs） */
