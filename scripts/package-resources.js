@@ -1126,12 +1126,6 @@ const OPENCLAW_SKILLS_DARWIN_ONLY = new Set([
 
 // openclaw/extensions 只保留 SeekClaw 当前产品面和运行时基础插件。
 const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
-  "shared",
-  "memory-core",
-  "device-pair",
-  "feishu",
-  "imessage",
-  "telegram",
   "kimi-claw",
   "kimi-search",
   "qqbot",
@@ -1141,11 +1135,6 @@ const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
 
 // 构建产物校验需要覆盖白名单中的关键扩展，避免悄悄打出残缺包。
 const REQUIRED_OPENCLAW_EXTENSION_OUTPUTS = [
-  "shared",
-  path.join("memory-core", "openclaw.plugin.json"),
-  path.join("device-pair", "openclaw.plugin.json"),
-  path.join("feishu", "openclaw.plugin.json"),
-  path.join("imessage", "openclaw.plugin.json"),
   path.join("kimi-claw", "openclaw.plugin.json"),
   path.join("kimi-search", "openclaw.plugin.json"),
   path.join("qqbot", "openclaw.plugin.json"),
