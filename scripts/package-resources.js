@@ -30,6 +30,50 @@ const QQBOT_PACKAGE_NAME = "@sliverp/qqbot";
 const DINGTALK_CONNECTOR_PACKAGE_NAME = "@dingtalk-real-ai/dingtalk-connector";
 const WECOM_PLUGIN_PACKAGE_NAME = "@wecom/wecom-openclaw-plugin";
 
+// ─── 插件白名单 ───
+// These are the plugin directory names to keep after node_modules pruning
+const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
+  "kimi-claw",
+  "kimi-search"
+]);
+
+// Artifact paths required to exist (relative to gateway/node_modules/openclaw/extensions)
+const REQUIRED_OPENCLAW_EXTENSION_OUTPUTS = [
+  "kimi-claw/openclaw.plugin.json",
+  "kimi-search/openclaw.plugin.json"
+];
+
+// 内置技能白名单
+const OPENCLAW_SKILLS_ALLOWLIST = new Set([
+  "chat",
+  "terminal",
+  "search",
+  "file",
+  "mcp"
+]);
+
+// ─── 插件打包配置 ───
+const BUNDLED_PLUGINS = [
+  {
+    id: "kimi-claw",
+    localEnv: "KIMI_CLAW_LOCAL_TGZ",
+    urlEnv: "KIMI_CLAW_TGZ_URL",
+    defaultURL: KIMI_CLAW_DEFAULT_TGZ_URL,
+    cacheFile: KIMI_CLAW_CACHE_FILE,
+    refreshEnv: "KIMI_CLAW_REFRESH",
+    requiredFiles: ["openclaw.plugin.json"],
+  },
+  {
+    id: "kimi-search",
+    localEnv: "KIMI_SEARCH_LOCAL_TGZ",
+    urlEnv: "KIMI_SEARCH_TGZ_URL",
+    defaultURL: KIMI_SEARCH_DEFAULT_TGZ_URL,
+    cacheFile: KIMI_SEARCH_CACHE_FILE,
+    refreshEnv: "KIMI_SEARCH_REFRESH",
+    requiredFiles: ["openclaw.plugin.json"],
+  }
+];
+
 // 计算目标产物的唯一标识
 function getTargetId(platform, arch) {
   return `${platform}-${arch}`;
@@ -52,11 +96,11 @@ function getTargetPaths(platform, arch) {
 // ─── 参数解析 ───
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = {
-    platform: process.platform,
-    arch: process.platform === "win32" ? "x64" : "arm64",
-    locale: "en",
-    asar: process.env.SEEKCLAW_GATEWAY_ASAR === "1",
+    const opts = {
+    platform: args.platform || process.platform,
+    arch: args.arch || process.arch,
+    asar: false, // 强制禁用网关 ASAR，解决 GitHub 打包后的启动校验问题（方案 A）
+    debug: args.debug === true,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -64,8 +108,6 @@ function parseArgs() {
       opts.platform = args[++i];
     } else if (args[i] === "--arch" && args[i + 1]) {
       opts.arch = args[++i];
-    } else if (args[i] === "--asar") {
-      opts.asar = true;
     }
   }
 
@@ -369,7 +411,6 @@ function extractDarwin(tarPath, runtimeDir, version, arch, targetId) {
     path.join(runtimeDir, "npx"),
     '#!/bin/sh\ndir="$(cd "$(dirname "$0")" && pwd)"\n"$dir/node" "$dir/vendor/npm/bin/npx-cli.js" "$@"\n'
   );
-
 
   // 拷贝 lib/node_modules/npm/ 到 vendor/npm/（避免 electron-builder 过滤 node_modules）
   const npmModSrc = path.join(srcBase, "lib", "node_modules", "npm");
@@ -956,86 +997,11 @@ function installDependencies(opts, gatewayDir) {
   log("node_modules 裁剪完成");
 }
 
-// Windows 上给 openclaw + kimi-claw 所有 spawn 调用统一补 windowsHide，避免黑框闪烁。
-// 采用全局扫描策略，不再逐文件 whack-a-mole，确保上游新增 spawn 调用自动被覆盖。
-function patchWindowsOpenclawArtifacts(gatewayDir, platform = "win32") {
-  if (platform !== "win32") return;
-
-  // 收集所有需要扫描的 JS 目录
-  const scanDirs = [];
-
-  // openclaw 核心 dist
-  const distDir = path.join(gatewayDir, "node_modules", "openclaw", "dist");
-  if (!fs.existsSync(distDir)) {
-    die(`openclaw dist 目录不存在，无法应用 Windows 补丁: ${distDir}`);
-  }
-  scanDirs.push(distDir);
-
-  // kimi-claw 插件（terminal-session-manager 有 pipe 回退未加 windowsHide）
-  const kimiClawDist = path.join(
-    gatewayDir, "node_modules", "openclaw", "extensions", "kimi-claw", "dist"
-  );
-  if (fs.existsSync(kimiClawDist)) {
-    scanDirs.push(kimiClawDist);
-  }
-
-  let totalFiles = 0;
-  let totalPatched = 0;
-
-  for (const dir of scanDirs) {
-    const result = patchWindowsHideGlobal(dir);
-    totalFiles += result.scanned;
-    totalPatched += result.patched;
-  }
-
-  if (totalPatched > 0) {
-    log(`已全局注入 windowsHide: 扫描 ${totalFiles} 文件，补丁 ${totalPatched} 文件`);
-  } else {
-    log(`windowsHide 全局扫描完成: ${totalFiles} 文件均已就绪，无需补丁`);
-  }
-}
-
-// 全局扫描目录下所有 .js 文件，给缺失 windowsHide 的 spawn 调用注入补丁。
-// 幂等：已有 windowsHide 的 spawn 不会重复注入。
-function patchWindowsHideGlobal(dir) {
-  const jsFiles = collectJsFilesRecursive(dir);
-  let scanned = 0;
-  let patched = 0;
-
-  for (const filePath of jsFiles) {
-    scanned += 1;
-    const before = fs.readFileSync(filePath, "utf-8");
-    const after = injectWindowsHideAll(before);
-    if (after !== before) {
-      fs.writeFileSync(filePath, after, "utf-8");
-      patched += 1;
-    }
-  }
-
-  return { scanned, patched };
-}
-
-// 递归收集目录下所有 .js 文件
-function collectJsFilesRecursive(dir) {
-  const results = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...collectJsFilesRecursive(full));
-    } else if (entry.isFile() && entry.name.endsWith(".js")) {
-      results.push(full);
-    }
-  }
-  return results;
-}
-
-// 给源码中所有 spawn(..., { ... }) 调用注入 windowsHide: true。
-// 策略：匹配 spawn options 对象的起始 `{` 后第一个属性，回看确认是 spawn 上下文，
-// 前探确认同一 options 块内无 windowsHide 后注入。
-function injectWindowsHideAll(source) {
-  // 匹配 spawn options 对象的起始模式：
-  //   ], { stdio  — 数组参数后的 options（killProcessTree, exec 等）
-  //   ), { stdio  — 函数调用结果后的 options（slice(1) 等）
+function patchWindowsOpenclawSpawn(source) {
+  // Windows 上给 openclaw + kimi-claw 所有 spawn 调用统一补 windowsHide: true，
+  // 解决 node-pty 和原生 spawn 在后台静默弹窗的问题。
+  // 匹配特征：
+  //   [], { stdio — 数组后的 options（slice(1) 等）
   //   var, { stdio — 变量参数后的 options（spawn(cmd, args, { stdio...）
   //   [], { cwd   — 空数组后的 options（kimi-claw terminal）
   return source.replace(
@@ -1054,184 +1020,41 @@ function injectWindowsHideAll(source) {
   );
 }
 
+// patchOpenclawAsarValidation 已移除 (方案 A)
+
 /**
- * 给 openclaw 的 boundary-file-read 模块打入 ASAR 路径校验绕过补丁。
- * 解决 "unsafe plugin manifest path" 报错。
+ * 针对 Windows 平台修复 openclaw 及其插件的运行产物（非 asar 模式）。
  */
-function patchOpenclawAsarValidation(gatewayDir) {
+function patchWindowsOpenclawArtifacts(gatewayDir, platform) {
+  if (platform !== "win32") return;
+
   const nmDir = path.join(gatewayDir, "node_modules");
   if (!fs.existsSync(nmDir)) return;
 
-  // 递归查找所有名字包含 openclaw 的目录下的 dist 子目录
-  function findOpenclawDistDirs(startDir) {
-    let results = [];
-    if (!fs.existsSync(startDir)) return results;
-    const list = fs.readdirSync(startDir);
-    for (const file of list) {
-      const fullPath = path.join(startDir, file);
-      const stat = fs.statSync(fullPath);
-      if (stat.isDirectory()) {
-        if (file === "openclaw") {
-          const dist = path.join(fullPath, "dist");
-          if (fs.existsSync(dist)) results.push(dist);
-        }
-        // 不能因为找到了 openclaw 就停止递归，因为 openclaw/extensions/xxx 里面可能还有 node_modules/openclaw
-        if (file !== ".bin") {
-          results = results.concat(findOpenclawDistDirs(fullPath));
+  // 递归查找所有 .js 文件并应用 spawn 补丁 (windowsHide: true)
+  function patchRecursively(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        patchRecursively(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(".js")) {
+        const source = fs.readFileSync(fullPath, "utf-8");
+        const patched = patchWindowsOpenclawSpawn(source);
+        if (source !== patched) {
+          fs.writeFileSync(fullPath, patched, "utf-8");
         }
       }
     }
-    return results;
   }
 
-  const distDirs = findOpenclawDistDirs(nmDir);
-
-  // 递归收集所有 .js 文件
-  function collectJsFiles(dir) {
-    let results = [];
-    const list = fs.readdirSync(dir);
-    for (const file of list) {
-      const fullPath = path.join(dir, file);
-      const stat = fs.statSync(fullPath);
-      if (stat.isDirectory()) {
-        results = results.concat(collectJsFiles(fullPath));
-      } else if (file.endsWith(".js")) {
-        results.push(fullPath);
-      }
-    }
-    return results;
-  }
-
-  let totalPatched = 0;
-  // 更加鲁棒的正则，兼容可能存在的空格/换行差异
-  const markerRegex = /function\s+openVerifiedFileSync\s*\(\s*params\s*\)\s*{/;
-
-  for (const distDir of distDirs) {
-    const files = collectJsFiles(distDir);
-    for (const filePath of files) {
-      const source = fs.readFileSync(filePath, "utf-8");
-      if (!markerRegex.test(source)) continue;
-      if (source.includes("/* asar-bypass-verified */")) continue;
-
-      const bypass = [
-        "function openVerifiedFileSync(params) {",
-        "  /* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
-        "    const ioFs = params.ioFs ?? fs;",
-        "    try {",
-        "      const fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
-        "      const stat = ioFs.fstatSync(fd);",
-        "      return { ok: true, path: params.filePath, fd, stat };",
-        "    } catch (e) {",
-        "      return { ok: false, reason: 'validation' };",
-        "    }",
-        "  }",
-      ].join("\n");
-
-      const result = source.replace(markerRegex, bypass);
-      if (result !== source) {
-        fs.writeFileSync(filePath, result, "utf-8");
-        log(`  [OK] 已补丁: ${path.relative(nmDir, filePath)}`);
-        totalPatched++;
-      }
-    }
-  }
-
-  if (totalPatched > 0) {
-    log(`已完成全量 ASAR 绕过补丁（共 ${totalPatched} 个模块）`);
-  } else {
-    log("未找到需要补丁的 openclaw 模块");
+  // 重点对 openclaw 和关键插件进行补丁
+  const targets = ["openclaw"];
+  for (const t of targets) {
+    const p = path.join(nmDir, t);
+    if (fs.existsSync(p)) patchRecursively(p);
   }
 }
 
-// ─── Step 2.5: 注入 bundled 插件（kimi-claw + kimi-search + qqbot + dingtalk） ───
-
-// 插件定义（id → 下载/缓存参数）
-const BUNDLED_PLUGINS = [
-  {
-    id: "kimi-claw",
-    localEnv: "SEEKCLAW_KIMI_CLAW_TGZ_PATH",
-    urlEnv: "SEEKCLAW_KIMI_CLAW_TGZ_URL",
-    refreshEnv: "SEEKCLAW_KIMI_CLAW_REFRESH",
-    defaultURL: KIMI_CLAW_DEFAULT_TGZ_URL,
-    cacheFile: KIMI_CLAW_CACHE_FILE,
-    // 校验解压产物必须包含的文件
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-  },
-  {
-    id: "kimi-search",
-    localEnv: "SEEKCLAW_KIMI_SEARCH_TGZ_PATH",
-    urlEnv: "SEEKCLAW_KIMI_SEARCH_TGZ_URL",
-    refreshEnv: "SEEKCLAW_KIMI_SEARCH_REFRESH",
-    defaultURL: KIMI_SEARCH_DEFAULT_TGZ_URL,
-    cacheFile: KIMI_SEARCH_CACHE_FILE,
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-  },
-  {
-    id: "qqbot",
-    packageName: QQBOT_PACKAGE_NAME,
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-    getSource: getQqbotPackageSource,
-  },
-  {
-    id: "dingtalk-connector",
-    packageName: DINGTALK_CONNECTOR_PACKAGE_NAME,
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-    getSource: getDingtalkConnectorPackageSource,
-  },
-  {
-    id: "wecom-openclaw-plugin",
-    packageName: WECOM_PLUGIN_PACKAGE_NAME,
-    requiredFiles: ["package.json", "openclaw.plugin.json"],
-    getSource: getWecomPluginPackageSource,
-  },
-];
-
-// openclaw/skills 只保留 SeekClaw 产品需要的内置技能，上游新增 skill 不会自动打入。
-const OPENCLAW_SKILLS_ALLOWLIST = new Set([
-  "canvas",
-  "clawhub",
-  "coding-agent",
-  "discord",
-  "github",
-  "healthcheck",
-  "model-usage",
-  "notion",
-  "session-logs",
-  "skill-creator",
-  "tmux",
-  "video-frames",
-  "weather",
-]);
-
-// 仅 macOS 构建时额外保留的 skills（依赖 macOS 专有 API 或 app）
-const OPENCLAW_SKILLS_DARWIN_ONLY = new Set([
-  "apple-notes",
-  "apple-reminders",
-  "camsnap",
-  "imsg",
-  "peekaboo",
-]);
-
-// openclaw/extensions 只保留 SeekClaw 当前产品面和运行时基础插件。
-const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
-  "kimi-claw",
-  "kimi-search",
-  "qqbot",
-  "dingtalk-connector",
-  "wecom-openclaw-plugin",
-]);
-
-// 构建产物校验需要覆盖白名单中的关键扩展，避免悄悄打出残缺包。
-const REQUIRED_OPENCLAW_EXTENSION_OUTPUTS = [
-  path.join("kimi-claw", "openclaw.plugin.json"),
-  path.join("kimi-search", "openclaw.plugin.json"),
-  path.join("qqbot", "openclaw.plugin.json"),
-  path.join("dingtalk-connector", "openclaw.plugin.json"),
-  path.join("wecom-openclaw-plugin", "openclaw.plugin.json"),
-];
-
-// 解析插件包来源（优先本地 tgz，其次远程 URL）
 function resolvePluginSource(plugin) {
   const localTgz = readEnvText(plugin.localEnv);
   if (localTgz) {
@@ -2133,10 +1956,6 @@ async function main() {
   // Step 5: 生成入口文件和构建信息
   log("Step 5: 生成入口文件和构建信息");
   generateEntryAndBuildInfo(targetPaths.gatewayDir, opts.platform, opts.arch);
-
-  // Step 5.5: 全局应用 ASAR 绕过补丁（必须在所有插件安装完成后执行）
-  log("Step 5.5: 全量应用 ASAR 绕过补丁");
-  patchOpenclawAsarValidation(targetPaths.gatewayDir);
 
   console.log();
 
