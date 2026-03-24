@@ -952,7 +952,6 @@ function installDependencies(opts, gatewayDir) {
   pruneDanglingBinLinks(nmDir);
   assertNativeDepsMatchTarget(nmDir, opts.platform, opts.arch);
   patchWindowsOpenclawArtifacts(gatewayDir, opts.platform);
-  patchOpenclawAsarValidation(gatewayDir);
   fs.writeFileSync(stampPath, targetStamp);
   log("node_modules 裁剪完成");
 }
@@ -1070,11 +1069,14 @@ function patchOpenclawAsarValidation(gatewayDir) {
     const list = fs.readdirSync(startDir);
     for (const file of list) {
       const fullPath = path.join(startDir, file);
-      if (fs.statSync(fullPath).isDirectory()) {
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
         if (file === "openclaw") {
           const dist = path.join(fullPath, "dist");
           if (fs.existsSync(dist)) results.push(dist);
-        } else if (file !== ".bin") {
+        }
+        // 不能因为找到了 openclaw 就停止递归，因为 openclaw/extensions/xxx 里面可能还有 node_modules/openclaw
+        if (file !== ".bin") {
           results = results.concat(findOpenclawDistDirs(fullPath));
         }
       }
@@ -1101,39 +1103,43 @@ function patchOpenclawAsarValidation(gatewayDir) {
   }
 
   let totalPatched = 0;
-  const marker = "function openVerifiedFileSync(params) {";
+  // 更加鲁棒的正则，兼容可能存在的空格/换行差异
+  const markerRegex = /function\s+openVerifiedFileSync\s*\(\s*params\s*\)\s*{/;
 
   for (const distDir of distDirs) {
     const files = collectJsFiles(distDir);
     for (const filePath of files) {
       const source = fs.readFileSync(filePath, "utf-8");
-      if (!source.includes(marker)) continue;
+      if (!markerRegex.test(source)) continue;
       if (source.includes("/* asar-bypass-verified */")) continue;
 
       const bypass = [
         "function openVerifiedFileSync(params) {",
-        "\t/* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
-        "\t\tconst ioFs = params.ioFs ?? fs;",
-        "\t\ttry {",
-        "\t\t\tconst fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
-        "\t\t\tconst stat = ioFs.fstatSync(fd);",
-        "\t\t\treturn { ok: true, path: params.filePath, fd, stat };",
-        "\t\t} catch (e) {",
-        "\t\t\treturn { ok: false, reason: 'validation' };",
-        "\t\t}",
-        "\t}",
+        "  /* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
+        "    const ioFs = params.ioFs ?? fs;",
+        "    try {",
+        "      const fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
+        "      const stat = ioFs.fstatSync(fd);",
+        "      return { ok: true, path: params.filePath, fd, stat };",
+        "    } catch (e) {",
+        "      return { ok: false, reason: 'validation' };",
+        "    }",
+        "  }",
       ].join("\n");
 
-      const result = source.replace(marker, bypass);
+      const result = source.replace(markerRegex, bypass);
       if (result !== source) {
         fs.writeFileSync(filePath, result, "utf-8");
+        log(`  [OK] 已补丁: ${path.relative(nmDir, filePath)}`);
         totalPatched++;
       }
     }
   }
 
   if (totalPatched > 0) {
-    log(`已全量补丁 ${totalPatched} 个 openclaw 验证模块（包含插件目录下的所有实例）`);
+    log(`已完成全量 ASAR 绕过补丁（共 ${totalPatched} 个模块）`);
+  } else {
+    log("未找到需要补丁的 openclaw 模块");
   }
 }
 
@@ -2127,6 +2133,10 @@ async function main() {
   // Step 5: 生成入口文件和构建信息
   log("Step 5: 生成入口文件和构建信息");
   generateEntryAndBuildInfo(targetPaths.gatewayDir, opts.platform, opts.arch);
+
+  // Step 5.5: 全局应用 ASAR 绕过补丁（必须在所有插件安装完成后执行）
+  log("Step 5.5: 全量应用 ASAR 绕过补丁");
+  patchOpenclawAsarValidation(targetPaths.gatewayDir);
 
   console.log();
 
