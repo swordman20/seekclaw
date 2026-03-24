@@ -1061,51 +1061,79 @@ function injectWindowsHideAll(source) {
  */
 function patchOpenclawAsarValidation(gatewayDir) {
   const nmDir = path.join(gatewayDir, "node_modules");
-  const openclawDir = path.join(nmDir, "openclaw");
-  if (!fs.existsSync(openclawDir)) return;
+  if (!fs.existsSync(nmDir)) return;
 
-  // 扫描所有可能包含 openVerifiedFileSync 的 JS 文件（产物经过混淆/打平，文件名不固定）
-  const distDir = path.join(openclawDir, "dist");
-  if (!fs.existsSync(distDir)) return;
+  // 递归查找所有名字包含 openclaw 的目录下的 dist 子目录
+  function findOpenclawDistDirs(startDir) {
+    let results = [];
+    if (!fs.existsSync(startDir)) return results;
+    const list = fs.readdirSync(startDir);
+    for (const file of list) {
+      const fullPath = path.join(startDir, file);
+      if (fs.statSync(fullPath).isDirectory()) {
+        if (file === "openclaw") {
+          const dist = path.join(fullPath, "dist");
+          if (fs.existsSync(dist)) results.push(dist);
+        } else if (file !== ".bin") {
+          results = results.concat(findOpenclawDistDirs(fullPath));
+        }
+      }
+    }
+    return results;
+  }
 
-  const files = fs.readdirSync(distDir)
-    .filter((f) => f.endsWith(".js"))
-    .map((f) => path.join(distDir, f));
+  const distDirs = findOpenclawDistDirs(nmDir);
 
-  let patched = 0;
+  // 递归收集所有 .js 文件
+  function collectJsFiles(dir) {
+    let results = [];
+    const list = fs.readdirSync(dir);
+    for (const file of list) {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        results = results.concat(collectJsFiles(fullPath));
+      } else if (file.endsWith(".js")) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
+  let totalPatched = 0;
   const marker = "function openVerifiedFileSync(params) {";
 
-  for (const filePath of files) {
-    const source = fs.readFileSync(filePath, "utf-8");
-    if (!source.includes(marker)) continue;
+  for (const distDir of distDirs) {
+    const files = collectJsFiles(distDir);
+    for (const filePath of files) {
+      const source = fs.readFileSync(filePath, "utf-8");
+      if (!source.includes(marker)) continue;
+      if (source.includes("/* asar-bypass-verified */")) continue;
 
-    // 已经有过补丁标记则跳过
-    if (source.includes("/* asar-bypass-verified */")) continue;
+      const bypass = [
+        "function openVerifiedFileSync(params) {",
+        "\t/* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
+        "\t\tconst ioFs = params.ioFs ?? fs;",
+        "\t\ttry {",
+        "\t\t\tconst fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
+        "\t\t\tconst stat = ioFs.fstatSync(fd);",
+        "\t\t\treturn { ok: true, path: params.filePath, fd, stat };",
+        "\t\t} catch (e) {",
+        "\t\t\treturn { ok: false, reason: 'validation' };",
+        "\t\t}",
+        "\t}",
+      ].join("\n");
 
-    // 注入逻辑：如果是 .asar 路径，直接跳过校验逻辑返回 OK
-    const bypass = [
-      "function openVerifiedFileSync(params) {",
-      "\t/* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
-      "\t\tconst ioFs = params.ioFs ?? fs;",
-      "\t\ttry {",
-      "\t\t\tconst fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
-      "\t\t\tconst stat = ioFs.fstatSync(fd);",
-      "\t\t\treturn { ok: true, path: params.filePath, fd, stat };",
-      "\t\t} catch (e) {",
-      "\t\t\treturn { ok: false, reason: 'validation' };",
-      "\t\t}",
-      "\t}",
-    ].join("\n");
-
-    const result = source.replace(marker, bypass);
-    if (result !== source) {
-      fs.writeFileSync(filePath, result, "utf-8");
-      patched++;
+      const result = source.replace(marker, bypass);
+      if (result !== source) {
+        fs.writeFileSync(filePath, result, "utf-8");
+        totalPatched++;
+      }
     }
   }
 
-  if (patched > 0) {
-    log(`已补丁 ${patched} 个 openclaw 验证模块（ASAR 路径绕过）`);
+  if (totalPatched > 0) {
+    log(`已全量补丁 ${totalPatched} 个 openclaw 验证模块（包含插件目录下的所有实例）`);
   }
 }
 
