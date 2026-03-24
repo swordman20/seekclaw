@@ -952,6 +952,7 @@ function installDependencies(opts, gatewayDir) {
   pruneDanglingBinLinks(nmDir);
   assertNativeDepsMatchTarget(nmDir, opts.platform, opts.arch);
   patchWindowsOpenclawArtifacts(gatewayDir, opts.platform);
+  patchOpenclawAsarValidation(gatewayDir);
   fs.writeFileSync(stampPath, targetStamp);
   log("node_modules 裁剪完成");
 }
@@ -1052,6 +1053,60 @@ function injectWindowsHideAll(source) {
       return prefix + ws + "windowsHide: true," + ws + keyword;
     }
   );
+}
+
+/**
+ * 给 openclaw 的 boundary-file-read 模块打入 ASAR 路径校验绕过补丁。
+ * 解决 "unsafe plugin manifest path" 报错。
+ */
+function patchOpenclawAsarValidation(gatewayDir) {
+  const nmDir = path.join(gatewayDir, "node_modules");
+  const openclawDir = path.join(nmDir, "openclaw");
+  if (!fs.existsSync(openclawDir)) return;
+
+  // 扫描所有可能包含 openVerifiedFileSync 的 JS 文件（产物经过混淆/打平，文件名不固定）
+  const distDir = path.join(openclawDir, "dist");
+  if (!fs.existsSync(distDir)) return;
+
+  const files = fs.readdirSync(distDir)
+    .filter((f) => f.endsWith(".js"))
+    .map((f) => path.join(distDir, f));
+
+  let patched = 0;
+  const marker = "function openVerifiedFileSync(params) {";
+
+  for (const filePath of files) {
+    const source = fs.readFileSync(filePath, "utf-8");
+    if (!source.includes(marker)) continue;
+
+    // 已经有过补丁标记则跳过
+    if (source.includes("/* asar-bypass-verified */")) continue;
+
+    // 注入逻辑：如果是 .asar 路径，直接跳过校验逻辑返回 OK
+    const bypass = [
+      "function openVerifiedFileSync(params) {",
+      "\t/* asar-bypass-verified */ if (params.filePath && params.filePath.includes('.asar')) {",
+      "\t\tconst ioFs = params.ioFs ?? fs;",
+      "\t\ttry {",
+      "\t\t\tconst fd = ioFs.openSync(params.filePath, ioFs.constants.O_RDONLY);",
+      "\t\t\tconst stat = ioFs.fstatSync(fd);",
+      "\t\t\treturn { ok: true, path: params.filePath, fd, stat };",
+      "\t\t} catch (e) {",
+      "\t\t\treturn { ok: false, reason: 'validation' };",
+      "\t\t}",
+      "\t}",
+    ].join("\n");
+
+    const result = source.replace(marker, bypass);
+    if (result !== source) {
+      fs.writeFileSync(filePath, result, "utf-8");
+      patched++;
+    }
+  }
+
+  if (patched > 0) {
+    log(`已补丁 ${patched} 个 openclaw 验证模块（ASAR 路径绕过）`);
+  }
 }
 
 // ─── Step 2.5: 注入 bundled 插件（kimi-claw + kimi-search + qqbot + dingtalk） ───
