@@ -52,6 +52,11 @@ const OPENCLAW_SKILLS_ALLOWLIST = new Set([
   "mcp"
 ]);
 
+// macOS 专用技能（如 iMessage）
+const OPENCLAW_SKILLS_DARWIN_ONLY = new Set([
+  "imessage"
+]);
+
 // ─── 插件打包配置 ───
 const BUNDLED_PLUGINS = [
   {
