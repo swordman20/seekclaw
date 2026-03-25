@@ -56,7 +56,6 @@ function parseArgs() {
     platform: process.platform,
     arch: process.platform === "win32" ? "x64" : "arm64",
     locale: "en",
-    asar: process.env.SEEKCLAW_GATEWAY_ASAR === "1",
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -64,8 +63,6 @@ function parseArgs() {
       opts.platform = args[++i];
     } else if (args[i] === "--arch" && args[i + 1]) {
       opts.arch = args[++i];
-    } else if (args[i] === "--asar") {
-      opts.asar = true;
     }
   }
 
@@ -1970,30 +1967,6 @@ function verifyOutput(targetPaths, opts) {
     ? path.join(targetRel, "runtime", "vendor", "npm")
     : path.join(targetRel, "runtime", "node_modules", "npm");
 
-  // asar 模式下散文件已被删除，只校验 gateway.asar 和基础资源
-  if (opts.asar) {
-    const required = [
-      path.join(targetRel, "runtime", nodeExe),
-      npmDir,
-      path.join(targetRel, "gateway.asar"),
-      path.join(targetRel, "build-config.json"),
-      path.join(targetRel, "app-icon.png"),
-    ];
-
-    let allOk = true;
-    for (const rel of required) {
-      const abs = path.join(ROOT, rel);
-      const exists = fs.existsSync(abs);
-      const status = exists ? "OK" : "缺失";
-      console.log(`  [${status}] ${rel}`);
-      if (!exists) allOk = false;
-    }
-
-    if (!allOk) die("关键文件缺失，打包失败");
-    log("所有关键文件验证通过 (asar 模式)");
-    return;
-  }
-
   const required = [
     path.join(targetRel, "runtime", nodeExe),
     npmDir,
@@ -2107,16 +2080,6 @@ async function main() {
   // Step 5: 生成入口文件和构建信息
   log("Step 5: 生成入口文件和构建信息");
   generateEntryAndBuildInfo(targetPaths.gatewayDir, opts.platform, opts.arch);
-
-  console.log();
-
-  // Step 6: Gateway ASAR 打包（--asar 或 SEEKCLAW_GATEWAY_ASAR=1 时启用）
-  if (opts.asar) {
-    log("Step 6: Gateway ASAR 打包");
-    await packGatewayAsar(targetPaths.gatewayDir, targetPaths.targetBase, opts.platform, opts.arch);
-  } else {
-    log("Step 6: 跳过 ASAR 打包（未指定 --asar）");
-  }
 
   console.log();
 

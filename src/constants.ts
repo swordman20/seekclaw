@@ -155,16 +155,7 @@ export function resolveNpmBin(): string {
  * 但不可用作 spawn 的 cwd（OS 不认识 asar 虚拟路径）。
  */
 function resolveGatewayRoot(): string {
-  const res = resolveResourcesPath();
-  const loosePath = path.join(res, "gateway");
-  if (fs.existsSync(loosePath) && fs.statSync(loosePath).isDirectory()) {
-    return loosePath;
-  }
-  const asarPath = path.join(res, "gateway.asar");
-  if (path.extname(asarPath) === ".asar" && fs.existsSync(asarPath)) {
-    return asarPath;
-  }
-  return loosePath;
+  return path.join(resolveResourcesPath(), "gateway");
 }
 
 /** Gateway 入口（优先 openclaw.mjs，旧包回退 gateway-entry.mjs） */
@@ -182,9 +173,6 @@ export function resolveGatewayEntry(): string {
  */
 export function resolveGatewayCwd(): string {
   const root = resolveGatewayRoot();
-  if (root.endsWith(".asar")) {
-    return resolveUserStateDir();
-  }
   return path.join(root, "node_modules", "openclaw");
 }
 

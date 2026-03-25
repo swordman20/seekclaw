@@ -60,15 +60,8 @@ exports.default = async function afterPack(context) {
   }
   console.log(`[afterPack] 使用目标资源: ${targetId}`);
 
-  // ── 检测 gateway 打包模式 ──
-  const gatewayAsarPath = path.join(sourceBase, "gateway.asar");
-  const useAsar = fs.existsSync(gatewayAsarPath);
-
-  if (useAsar) {
-    injectGatewayAsar(sourceBase, targetBase, appOutDir);
-  } else {
-    injectGatewayLoose(sourceBase, targetBase, appOutDir, platform, context);
-  }
+  // 注入 gateway 散文件资源
+  injectGatewayLoose(sourceBase, targetBase, appOutDir, platform, context);
 
   // runtime 目录始终以散文件注入
   const runtimeSrc = path.join(sourceBase, "runtime");
