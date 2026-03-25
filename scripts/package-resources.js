@@ -267,11 +267,31 @@ async function getLatestNode22Version() {
   return pickV22(versions);
 }
 
-// 从版本列表中取 v22.x 最新版
+// 从版本列表中取 v22.x 最新版，且必须 >= v22.16.0 (openclaw 2026.3.23+ 要求)
 function pickV22(versions) {
-  const v22 = versions.find((v) => v.version.startsWith("v22."));
-  if (!v22) die("未找到 Node.js v22.x 版本");
-  return v22.version.slice(1); // 去掉前缀 "v"
+  const v22Versions = versions
+    .filter((v) => v.version.startsWith("v22."))
+    .sort((a, b) => {
+      const va = a.version.slice(1).split(".").map((n) => parseInt(n, 10) || 0);
+      const vb = b.version.slice(1).split(".").map((n) => parseInt(n, 10) || 0);
+      for (let i = 0; i < 3; i++) {
+        const numA = va[i] || 0;
+        const numB = vb[i] || 0;
+        if (numA !== numB) return numB - numA;
+      }
+      return 0;
+    });
+
+  const latest = v22Versions[0];
+  if (!latest) die("未找到 Node.js v22.x 版本");
+
+  const versionNum = latest.version.slice(1);
+  const minor = parseInt(versionNum.split(".")[1], 10);
+  if (minor < 16) {
+    die(`Node.js v${versionNum} 太旧，openclaw 要求 >= 22.16.0`);
+  }
+
+  return versionNum;
 }
 
 // 下载并解压 Node.js 运行时到目标目录
@@ -1141,7 +1161,7 @@ const OPENCLAW_EXTENSION_ALLOWLIST = new Set([
 
 // 构建产物校验需要覆盖白名单中的关键扩展，避免悄悄打出残缺包。
 const REQUIRED_OPENCLAW_EXTENSION_OUTPUTS = [
-  "shared",
+  // "shared" 在新版 openclaw 中已移除或内置，不再单独校验
   path.join("memory-core", "openclaw.plugin.json"),
   path.join("device-pair", "openclaw.plugin.json"),
   path.join("feishu", "openclaw.plugin.json"),
@@ -1417,9 +1437,20 @@ function installTgzPluginDeps(plugin, pluginDir, targetId, opts) {
     log(`为 ${plugin.id} 编译 native addon: ${nativeAddonPkgs.join(", ")} (arch=${opts.arch}, electron=${electronVersion})`);
     for (const pkg of nativeAddonPkgs) {
       try {
+        // Electron 40+ 的 V8 头文件使用了 C++20 特性 (source_location)，
+        // 必须强制指定标准以避免编译失败。
+        // 同时设置环境变量和 npm_config 环境变量，增加成功概率。
+        const env = { 
+          ...process.env, 
+          CXXFLAGS: (process.env.CXXFLAGS || "") + " -std=c++20",
+          CPPFLAGS: (process.env.CPPFLAGS || "") + " -std=c++20",
+          npm_config_cxxflags: "-std=c++20",
+          npm_config_cppflags: "-std=c++20",
+        };
         execSync(`npm rebuild ${pkg} --arch=${opts.arch} --runtime=electron --target=${electronVersion} --dist-url=https://electronjs.org/headers`, {
           cwd: depTmpDir,
           stdio: "inherit",
+          env,
         });
       } catch (err) {
         log(`⚠ ${plugin.id} native addon ${pkg} 编译失败（${opts.arch}）: ${err.message || String(err)}`);
@@ -1566,6 +1597,7 @@ function pruneNodeModules(nmDir, platform) {
   const openclawDir = path.join(nmDir, "openclaw");
   const openclawDocsDir = path.join(openclawDir, "docs");
   const openclawExtensionsDir = path.join(openclawDir, "extensions");
+  const openclawDistExtensionsDir = path.join(openclawDir, "dist", "extensions");
   const openclawDocsKeepDir = path.join(openclawDocsDir, "reference", "templates");
 
   // 需要删除的目录名（只保留运行所需内容）
@@ -1747,8 +1779,14 @@ function pruneNodeModules(nmDir, platform) {
 
       if (entry.isDirectory()) {
         // extensions 改成白名单保留，并继续深入清理保留插件内部垃圾。
-        if (fullPath === openclawExtensionsDir) {
-          pruneOpenclawExtensions();
+        if (fullPath === openclawExtensionsDir || fullPath === openclawDistExtensionsDir) {
+          // 对 dist/extensions 我们由于不确定其内部结构，仅按需执行 walk 而不是 pruneOpenclawExtensions
+          // 因为 pruneOpenclawExtensions 基于 OPENCLAW_EXTENSION_ALLOWLIST (SeekClaw 关注列表)
+          if (fullPath === openclawExtensionsDir) {
+            pruneOpenclawExtensions();
+          } else {
+            walk(fullPath);
+          }
           continue;
         }
 
@@ -1973,15 +2011,29 @@ function verifyOutput(targetPaths, opts) {
   const crossCompileOptionalExts = new Set(["kimi-claw", "kimi-search"]);
 
   required.push(
-    ...REQUIRED_OPENCLAW_EXTENSION_OUTPUTS.map((relPath) =>
-      path.join(targetRel, "gateway", "node_modules", "openclaw", "extensions", relPath)
-    )
+    ...REQUIRED_OPENCLAW_EXTENSION_OUTPUTS.map((relPath) => ({
+      relPath,
+      newPath: path.join(targetRel, "gateway", "node_modules", "openclaw", "dist", "extensions", relPath),
+      oldPath: path.join(targetRel, "gateway", "node_modules", "openclaw", "extensions", relPath),
+    }))
   );
 
   let allOk = true;
-  for (const rel of required) {
-    const abs = path.join(ROOT, rel);
-    const exists = fs.existsSync(abs);
+  for (const item of required) {
+    let rel, abs, exists;
+    if (typeof item === "string") {
+      rel = item;
+      abs = path.join(ROOT, rel);
+      exists = fs.existsSync(abs);
+    } else {
+      rel = item.relPath;
+      const absNew = path.join(ROOT, item.newPath);
+      const absOld = path.join(ROOT, item.oldPath);
+      exists = fs.existsSync(absNew) || fs.existsSync(absOld);
+      abs = fs.existsSync(absNew) ? absNew : absOld;
+      // 显示时使用实际找到的路径（相对于 ROOT）
+      rel = path.relative(ROOT, abs);
+    }
 
     // Windows arm64 交叉编译时，可选扩展缺失只 warning
     const isOptionalExt = winArm64Cross && [...crossCompileOptionalExts].some((ext) => rel.includes(`extensions${path.sep}${ext}`));
