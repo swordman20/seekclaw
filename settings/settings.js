@@ -109,6 +109,11 @@
       placeholder: "sk-...",
       models: ["deepseek-chat", "deepseek-reasoner"],
     },
+    "onelinkai": {
+      providerKey: "onelinkai",
+      placeholder: "sk-...",
+      models: ["qwen3.5-plus", "glm-5"],
+    },
   };
 
   // 已保存的各 provider 配置缓存（供切换时自动回填）

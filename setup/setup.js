@@ -101,6 +101,11 @@
       placeholder: "sk-...",
       models: ["deepseek-chat", "deepseek-reasoner"],
     },
+    "onelinkai": {
+      providerKey: "onelinkai",
+      placeholder: "sk-...",
+      models: ["qwen3.5-plus", "glm-5"],
+    },
   };
 
   // ---- 国际化文案 ----

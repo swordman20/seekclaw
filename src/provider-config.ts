@@ -102,6 +102,20 @@ export const CUSTOM_PROVIDER_PRESETS: Record<string, CustomProviderPreset> = {
     placeholder: "sk-...",
     models: ["deepseek-chat", "deepseek-reasoner"],
   },
+  "onelinkai": {
+    providerKey: "onelinkai",
+    baseUrl: "https://api.onelinkai.cloud/v1",
+    api: "openai-completions",
+    placeholder: "sk-...",
+    models: ["qwen3.5-plus", "glm-5"],
+  },
+};
+
+// 各预设模型的详细元数据（input 能力、上下文窗口、最大输出 token）
+const MODEL_META: Record<string, { name?: string; input: string[]; contextWindow?: number; maxTokens?: number }> = {
+  // OneLinkAI
+  "onelinkai:qwen3.5-plus": { input: ["text", "image"], contextWindow: 1000000, maxTokens: 65536 },
+  "onelinkai:glm-5": { input: ["text"], contextWindow: 202752, maxTokens: 16384 },
 };
 
 // ── 构建 Provider 配置对象 ──
@@ -130,11 +144,23 @@ export function buildProviderConfig(
   // Custom 内置预设命中时，使用预设的 baseUrl 和 api（前端传了 baseURL 时优先用前端值）
   const customPre = customPreset ? CUSTOM_PROVIDER_PRESETS[customPreset] : undefined;
   if (customPre) {
+    // 把预设里所有模型都写入 models，选中的排在第一位作为默认模型
+    const allModelIds = [modelID, ...customPre.models.filter((m) => m !== modelID)];
+    const modelObjects = allModelIds.map((id) => {
+      const meta = MODEL_META[`${customPreset}:${id}`] || MODEL_META[id];
+      return {
+        id,
+        name: meta?.name ?? id,
+        input: meta?.input ?? ["text", "image"],
+        ...(meta?.contextWindow !== undefined ? { contextWindow: meta.contextWindow } : {}),
+        ...(meta?.maxTokens !== undefined ? { maxTokens: meta.maxTokens } : {}),
+      };
+    });
     return {
       apiKey,
       baseUrl: baseURL || customPre.baseUrl,
       api: customPre.api,
-      models: [{ id: modelID, name: modelID, input: ["text", "image"] }],
+      models: modelObjects,
     };
   }
 

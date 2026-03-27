@@ -61,11 +61,18 @@ dmg:
 win:
   target: nsis
   icon: assets/icon.ico
+  # 禁用本地打包时的签名，避免 macOS 交叉编译生成无效签名导致 NSIS 校验报错
+  # 正式发布时可通过命令行环境变量覆盖
+  cscLink: null
+  # 降低压缩率以提升解压速度（LZMA -> Deflate/Normal）
+  compression: normal
 
 nsis:
-  oneClick: true
+  oneClick: false
   perMachine: false
-  # 安装前强制终止旧进程，避免托盘模式下 WM_CLOSE 被拦截
+  allowToChangeInstallationDirectory: true
+  # 强制显示语言选择（可选，配合提示信息使用）
+  # installerLanguages: ["zh_CN", "en_US"]
   include: "scripts/installer.nsh"
   createDesktopShortcut: true
   createStartMenuShortcut: true
